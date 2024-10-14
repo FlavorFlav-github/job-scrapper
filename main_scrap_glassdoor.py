@@ -1,37 +1,16 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 import json
 import requests
 import time
-import os
+import check_new_added_jobs
+import const
+import glassdoor_jobs_read_write
 
 
-current_script_path = os.path.dirname(os.path.abspath(__file__))
-Base_directory = current_script_path + os.path.sep
-output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
-output_file_link = f"{output_directory}job_listings_glassdoor.json"
-
-
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory, exist_ok=True)
-
-
-#original_page_url = "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm"
-pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm", "seo" : "bruxelles-belgique-data-analyst-emplois", "url_input" : "IL.0,18_IS3845_KO19,31", "location_id": 3845, "location_type": "STATE", "key_word": "data-analyst"}, 
-{"url": "https://www.glassdoor.fr/Emploi/bruxelles-business-intelligence-emplois-SRCH_IL.0,9_IS3845_KO10,31.htm", "seo" : "bruxelles-business-intelligence-emplois", "url_input" : "IL.0,9_IS3845_KO10,31", "location_id": 3845, "location_type": "STATE", "key_word": "business-intelligence"},
-{"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-data-analyst-emplois-SRCH_IL.0,23_IC4990924_KO24,36.htm", "seo" : "munich-bayern-allemagne-data-analyst", "url_input" : "IL.0,23_IC4990924_KO24,36", "location_id": 4990924, "location_type": "CITY", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/singapour-data-analyst-emplois-SRCH_IL.0,9_IN217_KO10,22.htm", "seo" : "singapour-data-analyst-emplois", "url_input" : "IL.0,9_IN217_KO10,22", "location_id": 217, "location_type": "COUNTRY", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/paris-france-data-analyst-emplois-SRCH_IL.0,12_IS4540_KO13,25.htm", "seo" : "paris-france-data-analyst-emplois", "url_input" : "IL.0,12_IS4540_KO13,25", "location_id": 4540, "location_type": "STATE", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-data-analyst-emplois-SRCH_IL.0,16_IC2622109_KO17,29.htm", "seo" : "berlin-allemagne-data-analyst-emplois", "url_input" : "IL.0,16_IC2622109_KO17,29", "location_id": 2622109, "location_type": "CITY", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/dublin-dublin-business-intelligence-emplois-SRCH_IL.0,13_IC2739035_KO14,35.htm", "seo" : "dublin-dublin-business-intelligence-emplois", "url_input" : "IL.0,13_IC2739035_KO14,35", "location_id": 2739035, "location_type": "CITY", "key_word": "business-intelligence"},
-{"url": "https://www.glassdoor.fr/Emploi/dublin-irlande-data-analyst-emplois-SRCH_IL.0,14_IC2739035_KO15,27.htm", "seo" : "dublin-irlande-data-analyst-emplois", "url_input" : "IL.0,14_IC2739035_KO15,27", "location_id": 2739035, "location_type": "CITY", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/frankfurt-am-main-data-analyst-emplois-SRCH_IL.0,17_IC2632180_KO18,30.htm", "seo" : "frankfurt-am-main-data-analyst-emplois", "url_input" : "IL.0,17_IC2632180_KO18,30", "location_id": 2632180, "location_type": "CITY", "key_word": "data-analyst"},
-{"url": "https://www.glassdoor.fr/Emploi/frankfurt-am-main-allemagne-business-intelligence-emplois-SRCH_IL.0,27_IC2632180_KO28,49.htm", "seo" : "frankfurt-am-main-allemagne-business-intelligence-emplois", "url_input" : "IL.0,27_IC2632180_KO28,49", "location_id": 2632180, "location_type": "CITY", "key_word": "business-intelligence"},
-{"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-business-intelligence-emplois-SRCH_IL.0,23_IC4990924_KO24,45.htm", "seo" : "munich-bayern-allemagne-business-intelligence-emplois", "url_input" : "IL.0,23_IC4990924_KO24,45", "location_id": 4990924, "location_type": "CITY", "key_word": "business-intelligence"},
-{"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-business-intelligence-emplois-SRCH_IL.0,16_IC2622109_KO17,38.htm", "seo" : "berlin-allemagne-business-intelligence-emplois", "url_input" : "IL.0,16_IC2622109_KO17,38", "location_id": 2622109, "location_type": "CITY", "key_word": "business-intelligence"}]
+pages_url = const.pages_url
 
 # Configure Selenium to use a headless browser
 chrome_options = Options()
@@ -166,19 +145,17 @@ for original_page in pages_url:
                         if pageNumber and pageNumber not in cursor_processed and not any(c.get("pageNumber") == pageNumber for c in cursor_loaded):
                             cursor_loaded.append(new_cursor)
 
-# Transform data
+# Add a datePosted attribute
 for i in range(len(job_listings)):
     if "jobview" in job_listings[i] and job_listings[i]["jobview"]:
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
                 job_listings[i]["datePosted"] = (today + timedelta(days=-int(job_listings[i]["jobview"]["header"]["ageInDays"]))).isoformat()
-job_listing_loaded = []
-try:  
-    with open(output_file_link, "r") as f:
-        job_listing_loaded = json.load(f) 
-except Exception as e:
-    print("Could not read the file job_listings_glassdoor.json", e)
-    
+
+# Load jobs from file
+job_listing_loaded = glassdoor_jobs_read_write.read_glassdoor_jobs()
+
+# Merging existing jobs with new jobs
 for new_jobs in job_listings:
         found = 0
         for old_jobs in job_listing_loaded:
@@ -187,9 +164,16 @@ for new_jobs in job_listings:
                 break
         if found == 0:
             job_listing_loaded.append(new_jobs)
-            
-with open(output_file_link, "w") as f:
+
+current_date = datetime.now() - timedelta(days=45)
+filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted" in job and (job["datePosted"] is not None and job["datePosted"] != "") and datetime.strptime(job["datePosted"], '%Y-%m-%dT%H:%M:%S.%f') > current_date]
+
+
+# Saving the list of jobs to file
+with open(const.output_file_link, "w") as f:
     json.dump(job_listing_loaded, f)
-#get_jobs(token_loaded)
+
+check_new_added_jobs.send_new_added_jobs(job_listing_loaded, const.new_jobs_lookback)
+
 # Close the browser
 driver.quit()
