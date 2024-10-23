@@ -173,7 +173,7 @@ filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted"
 with open(const.output_file_link, "w") as f:
     json.dump(filter_job_listings_on_date, f)
 
-check_new_added_jobs.send_new_added_jobs(job_listing_loaded, const.new_jobs_lookback)
+check_new_added_jobs.send_new_added_jobs(filter_job_listings_on_date, const.new_jobs_lookback)
 
 # Close the browser
 driver.quit()
