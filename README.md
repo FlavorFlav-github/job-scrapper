@@ -1,5 +1,9 @@
 # Glassdoor Jobs Scrapper
 
+### 2024-10-14 - 1.1.1
+#### Fixed
+- Fixed save job loaded to only save jobs from 45 days of age max
+  
 ### 2024-10-14 - 1.1.0
 #### Added
 - Add constants file for file location and keywords
