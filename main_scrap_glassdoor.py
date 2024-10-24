@@ -150,7 +150,7 @@ for i in range(len(job_listings)):
     if "jobview" in job_listings[i] and job_listings[i]["jobview"]:
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
-                job_listings[i]["datePosted"] = (today + timedelta(days=-int(job_listings[i]["jobview"]["header"]["ageInDays"]))).isoformat()
+                job_listings[i]["datePosted"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1))).isoformat()
 
 # Load jobs from file
 job_listing_loaded = glassdoor_jobs_read_write.read_glassdoor_jobs()
