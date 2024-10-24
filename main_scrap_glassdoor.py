@@ -32,11 +32,18 @@ for original_page in pages_url:
     url = original_page.get("url")
     seo_extract = "-".join(elem for elem in (url.split("/")[-1].split("-")[:-1]))
     url_input_extract = ("_".join(elem for elem in (url.split("_")[1:]))).replace(".htm", "")
-    print(seo_extract)
-    print(url_input_extract)
-    #location_id_extract
-    #location_type_extract
-    #key_word_extract
+    keywords_limits = url_input_extract.split("_")[-1][2:].split(",")
+    keywords_limit_down, keyword_limit_up = keywords_limits[0], keywords_limits[1]
+    location_extract = ((url_input_extract.split(",")[1]).split("_")[1])[2:]
+    location_type_raw = ((url_input_extract.split(",")[1]).split("_")[1])[:2]
+    location_type = const.location_type_mapping[location_type_raw] if location_type_raw in const.location_type_mapping else "Other"
+    keywords = seo_extract[int(keywords_limit_down):int(keyword_limit_up)]
+    print("SEO:", seo_extract)
+    print("URL input:", url_input_extract)
+    print("Location ID:", location_extract)
+    print("Loc Type:", location_type)
+    print("Keywords:", keywords)
+    print("------------")
     
     driver.get(url)
 
@@ -76,7 +83,7 @@ for original_page in pages_url:
         print("Token not found")
 
 
-    def get_jobs(token, cursor, page, url, seo, url_input, location_id, key_word, location_type):
+    def get_jobs(token, cursor, page, seo, url_input, location_id, key_word, location_type):
         url = "https://www.glassdoor.fr/graph"
 
         payload = json.dumps([
@@ -128,7 +135,8 @@ for original_page in pages_url:
         #print(response.text)
     cursor_processed = []
     while len(cursor_loaded) > 0:
-        jobs = get_jobs(token_loaded, cursor_loaded[0].get("cursor"), cursor_loaded[0].get("pageNumber"), original_page.get("url"), original_page.get("seo"),original_page.get("url_input"), original_page.get("location_id"), original_page.get("key_word"), original_page.get("location_type"))
+        jobs = get_jobs(token_loaded, cursor_loaded[0].get("cursor"), cursor_loaded[0].get("pageNumber"),
+                        seo_extract, url_input_extract, location_extract, keywords, location_type)
         current_cursor = cursor_loaded.pop(0)  # Remove and get the first element
         cursor_processed.append(current_cursor.get("pageNumber"))
         if len(jobs) > 0:
@@ -150,7 +158,7 @@ for i in range(len(job_listings)):
     if "jobview" in job_listings[i] and job_listings[i]["jobview"]:
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
-                job_listings[i]["datePosted"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1))).isoformat()
+                job_listings[i]["datePosted"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
 
 # Load jobs from file
 job_listing_loaded = glassdoor_jobs_read_write.read_glassdoor_jobs()

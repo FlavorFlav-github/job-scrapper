@@ -7,6 +7,7 @@ output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
 output_file_link = f"{output_directory}job_listings_glassdoor.json"
 acceptedTitle = ["data & analytics", "bi developer", "insight analyst", "data scientist", "insights analyst", "technical project manager", "business intelligence", "bi analyst", "data engineer", "bi engineer", "data analyst"]
 notAcceptedTitle = ["senior", "stage", "intern"]
+location_type_mapping = {"IS": "STATE", "IC": "CITY", "IN": "COUNTRY"}
 new_jobs_lookback = 6
 pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm", "seo" : "bruxelles-belgique-data-analyst-emplois", "url_input" : "IL.0,18_IS3845_KO19,31", "location_id": 3845, "location_type": "STATE", "key_word": "data-analyst"},
              {"url": "https://www.glassdoor.fr/Emploi/bruxelles-business-intelligence-emplois-SRCH_IL.0,9_IS3845_KO10,31.htm", "seo" : "bruxelles-business-intelligence-emplois", "url_input" : "IL.0,9_IS3845_KO10,31", "location_id": 3845, "location_type": "STATE", "key_word": "business-intelligence"},
@@ -20,6 +21,7 @@ pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-an
              {"url": "https://www.glassdoor.fr/Emploi/frankfurt-am-main-allemagne-business-intelligence-emplois-SRCH_IL.0,27_IC2632180_KO28,49.htm", "seo" : "frankfurt-am-main-allemagne-business-intelligence-emplois", "url_input" : "IL.0,27_IC2632180_KO28,49", "location_id": 2632180, "location_type": "CITY", "key_word": "business-intelligence"},
              {"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-business-intelligence-emplois-SRCH_IL.0,23_IC4990924_KO24,45.htm", "seo" : "munich-bayern-allemagne-business-intelligence-emplois", "url_input" : "IL.0,23_IC4990924_KO24,45", "location_id": 4990924, "location_type": "CITY", "key_word": "business-intelligence"},
              {"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-business-intelligence-emplois-SRCH_IL.0,16_IC2622109_KO17,38.htm", "seo" : "berlin-allemagne-business-intelligence-emplois", "url_input" : "IL.0,16_IC2622109_KO17,38", "location_id": 2622109, "location_type": "CITY", "key_word": "business-intelligence"}]
+
 
 if not os.path.exists(output_directory):
     os.makedirs(output_directory, exist_ok=True)
