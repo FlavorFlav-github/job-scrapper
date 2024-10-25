@@ -8,6 +8,7 @@ import time
 import check_new_added_jobs
 import const
 import glassdoor_jobs_read_write
+import language_detector
 
 
 pages_url = const.pages_url
@@ -159,6 +160,9 @@ for i in range(len(job_listings)):
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
                 job_listings[i]["datePosted"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
+        if "job" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["job"]:
+            if "descriptionFragmentsText" in job_listings[i]["jobview"]["job"] and job_listings[i]["jobview"]["job"]["descriptionFragmentsText"]:
+                job_listings[i]["language"], job_listings[i]["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
 
 # Load jobs from file
 job_listing_loaded = glassdoor_jobs_read_write.read_glassdoor_jobs()
@@ -181,7 +185,11 @@ filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted"
 with open(const.output_file_link, "w") as f:
     json.dump(filter_job_listings_on_date, f)
 
-check_new_added_jobs.send_new_added_jobs(filter_job_listings_on_date, const.new_jobs_lookback)
+# Remove jobs in german from list of notification
+filter_job_listings_de = [job for job in filter_job_listings_on_date if ("language" not in job) or ("language" in job and job["language"] != "de")]
+
+# Send the notification for new jobs
+check_new_added_jobs.send_new_added_jobs(filter_job_listings_de, const.new_jobs_lookback)
 
 # Close the browser
 driver.quit()

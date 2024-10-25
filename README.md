@@ -1,5 +1,11 @@
 # Glassdoor Jobs Scrapper
 
+# 2024-10-25 - 1.1.3
+#### Added
+- Added a language identification of the job offer
+- Filter job offers in german to not be sent on telegram
+- Added packages transformers and torch
+
 # 2024-10-24 - 1.1.2
 #### Fixed
 - Fixed published date calculation to start at 0 instead of 1
