@@ -9,6 +9,7 @@ import check_new_added_jobs
 import const
 import glassdoor_jobs_read_write
 import language_detector
+import telegramBot
 
 
 pages_url = const.pages_url
@@ -22,6 +23,8 @@ chrome_options.add_argument("start-maximized")
 chrome_options.add_argument("disable-infobars")
 chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36')
+
+telegramBot.send_message('Begin Search of new jobs')
 
 # Initialize WebDriver
 driver = webdriver.Chrome(options=chrome_options)
