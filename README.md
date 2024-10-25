@@ -3,6 +3,7 @@
 # 2024-10-25 - 1.1.3
 #### Added
 - Added a language identification of the job offer
+- Add telegram message to indicate new jobs search loop began
 - Filter job offers in german to not be sent on telegram
 - Added packages transformers and torch
 
