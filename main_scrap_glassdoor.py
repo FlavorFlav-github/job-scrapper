@@ -189,7 +189,7 @@ with open(const.output_file_link, "w") as f:
     json.dump(filter_job_listings_on_date, f)
 
 # Remove jobs in german from list of notification
-filter_job_listings_de = [job for job in filter_job_listings_on_date if ("language" not in job) or ("language" in job and job["language"] != "de")]
+filter_job_listings_de = [job for job in filter_job_listings_on_date if ("language" not in job) or ("language" in job and (job["language"] == "fr" or job["language"] == "en"))]
 
 # Send the notification for new jobs
 check_new_added_jobs.send_new_added_jobs(filter_job_listings_de, const.new_jobs_lookback)
