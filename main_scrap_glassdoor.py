@@ -7,7 +7,7 @@ import requests
 import time
 import check_new_added_jobs
 import const
-import glassdoor_jobs_read_write
+import jobs_read_write
 import language_detector
 import telegramBot
 
@@ -168,7 +168,7 @@ for i in range(len(job_listings)):
                 job_listings[i]["language"], job_listings[i]["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
 
 # Load jobs from file
-job_listing_loaded = glassdoor_jobs_read_write.read_glassdoor_jobs()
+job_listing_loaded = jobs_read_write.read_glassdoor_jobs()
 
 # Merging existing jobs with new jobs
 for new_jobs in job_listings:
@@ -185,7 +185,7 @@ filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted"
 
 
 # Saving the list of jobs to file
-with open(const.output_file_link, "w") as f:
+with open(const.glassdoor_jobs_output_file_link, "w") as f:
     json.dump(filter_job_listings_on_date, f)
 
 # Remove jobs in german from list of notification

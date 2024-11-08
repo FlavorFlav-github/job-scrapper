@@ -5,8 +5,10 @@ from flask import Flask, request, jsonify, send_file
 
 current_script_path = os.path.dirname(os.path.abspath(__file__))
 Base_directory = current_script_path + os.path.sep
-output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
-output_file_link = f"{output_directory}job_listings_glassdoor.json"
+glassdoor_jobs_output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
+glassdoor_jobs_output_file_link = f"{glassdoor_jobs_output_directory}job_listings_glassdoor.json"
+linkedin_jobs_output_directory = f"{Base_directory}../linkedin-scrap-jobs-data/"
+glassdoor_jobs_output_file_link = f"{linkedin_jobs_output_directory}job_listings_linkedin.json"
 app = Flask(__name__)
 expectedToken="MyTokenSecure123"
 
@@ -27,13 +29,25 @@ def require_id_connect_header(expected_value):
 @require_id_connect_header(expected_value=expectedToken)
 def read_glassdoor_jobs():
     try:  
-        with open(output_file_link, "r") as f:
+        with open(glassdoor_jobs_output_file_link, "r") as f:
             job_listing_loaded = json.load(f) 
             return jsonify({'message': job_listing_loaded})
     except Exception as e:
         print("Could not read the file job_listings_glassdoor.json", e)
         return jsonify({'message': f'Could not read the job file : {e}'})
 
-    
+
+@app.route('/get_linkedin_jobs')
+@require_id_connect_header(expected_value=expectedToken)
+def read_linkedin_jobs():
+    try:
+        with open(glassdoor_jobs_output_file_link, "r") as f:
+            job_listing_loaded = json.load(f)
+            return jsonify({'message': job_listing_loaded})
+    except Exception as e:
+        print("Could not read the file job_listings_linkedin.json", e)
+        return jsonify({'message': f'Could not read the job file : {e}'})
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)

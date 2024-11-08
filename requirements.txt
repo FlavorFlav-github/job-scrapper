@@ -4,3 +4,7 @@ Requests==2.32.3
 selenium==4.25.0
 transformers==4.46.0
 torch=2.5.0
+webdriver-manager==4.0.2
+pillow==11.0.0
+opencv-python==4.10.0.84
+scikit-image==0.24.0

@@ -3,12 +3,20 @@ import os
 
 current_script_path = os.path.dirname(os.path.abspath(__file__))
 Base_directory = current_script_path + os.path.sep
-output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
-output_file_link = f"{output_directory}job_listings_glassdoor.json"
+glassdoor_jobs_output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
+linkedin_jobs_output_directory = f"{Base_directory}../linkedin-scrap-jobs-data/"
+glassdoor_jobs_output_file_link = f"{glassdoor_jobs_output_directory}job_listings_glassdoor.json"
+linkedin_jobs_output_file_link = f"{linkedin_jobs_output_directory}job_listings_linkedin.json"
 acceptedTitle = ["data & analytics", "bi developer", "insight analyst", "data scientist", "insights analyst", "technical project manager", "business intelligence", "bi analyst", "data engineer", "bi engineer", "data analyst"]
 notAcceptedTitle = ["senior", "stage", "intern"]
 location_type_mapping = {"IS": "STATE", "IC": "CITY", "IN": "COUNTRY"}
+linkedin_username = "yassine.elhaouari@outlook.fr"
+linkedin_password = "#WuTangClan1989#"
+linkedin_cookie = ""
 new_jobs_lookback = 6
+linkedin_search_parameter = [{"key_word": "data%20analyst", "geo_id": "90009604"},
+                             {"key_word": "business%20intelligence", "geo_id": "90009604"},
+                             {"key_word": "power%20bi", "geo_id": "90009604"}]
 pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm", "seo" : "bruxelles-belgique-data-analyst-emplois", "url_input" : "IL.0,18_IS3845_KO19,31", "location_id": 3845, "location_type": "STATE", "key_word": "data-analyst"},
              {"url": "https://www.glassdoor.fr/Emploi/bruxelles-business-intelligence-emplois-SRCH_IL.0,9_IS3845_KO10,31.htm", "seo" : "bruxelles-business-intelligence-emplois", "url_input" : "IL.0,9_IS3845_KO10,31", "location_id": 3845, "location_type": "STATE", "key_word": "business-intelligence"},
              {"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-data-analyst-emplois-SRCH_IL.0,23_IC4990924_KO24,36.htm", "seo" : "munich-bayern-allemagne-data-analyst", "url_input" : "IL.0,23_IC4990924_KO24,36", "location_id": 4990924, "location_type": "CITY", "key_word": "data-analyst"},
@@ -23,5 +31,7 @@ pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-an
              {"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-business-intelligence-emplois-SRCH_IL.0,16_IC2622109_KO17,38.htm", "seo" : "berlin-allemagne-business-intelligence-emplois", "url_input" : "IL.0,16_IC2622109_KO17,38", "location_id": 2622109, "location_type": "CITY", "key_word": "business-intelligence"}]
 
 
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory, exist_ok=True)
+if not os.path.exists(linkedin_jobs_output_directory):
+    os.makedirs(linkedin_jobs_output_directory, exist_ok=True)
+if not os.path.exists(glassdoor_jobs_output_directory):
+    os.makedirs(glassdoor_jobs_output_directory, exist_ok=True)

@@ -1,5 +1,8 @@
 # Glassdoor Jobs Scrapper
 
+# 2024-11-08 - 2.0.0
+#### Added
+- Added linkedin jobs scrapper
 # 2024-10-25 - 1.2.0
 #### Added
 - Added a language identification of the job offer
