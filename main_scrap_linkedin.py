@@ -29,29 +29,41 @@ driver = webdriver.Chrome(options=chrome_options)
 
 
 # Function to capture API requests and responses
-def get_network_requests(url):
+def get_headers(url, template):
     print("Start to get cookies")
     # Enable network tracking with CDP
     driver.execute_cdp_cmd("Network.enable", {})
-    time.sleep(3)
     driver.get(url)
-
+    time.sleep(3)
+    logs = driver.get_log("performance")
     # Search linkedin mandatory cookies
     cookies = driver.get_cookies()
     const.linkedin_cookie = ""
     csrf_token = ""
-
+    request_out = None
     for cookie in cookies:
-        if cookie['name'] in ["li_at", "JSESSIONID", "lang"]:
+        if cookie['name'] in ["li_at", "JSESSIONID", "lang", "li_mc", "li_gc", "lidc", "bcookie", "bscookie"]:
             const.linkedin_cookie += f'{cookie["name"]}={cookie["value"]};'
-        if cookie['name'] == "JSESSIONID":
-            csrf_token = cookie["value"].replace('"', '')
+    for entry in logs:
+        try:
+            message = json.loads(entry["message"])["message"]
+            if message["method"] == "Network.requestWillBeSent":
+                network_request = message["params"]["request"]
+                if template in network_request["url"]:
+                    headers = network_request.get("headers")
+                    headers["cookie"] = const.linkedin_cookie
+                    request_out = {
+                        "headers": headers
+                    }
+                    break
+        except Exception as e:
+            continue
 
-    request_out = {"coookie": const.linkedin_cookie, "csrf-token": csrf_token}
     if len(const.linkedin_cookie) > 0:
         print("Cookies get successfully")
     else:
         print("Cookies not found")
+
     # Disable network tracking once done
     driver.execute_cdp_cmd("Network.disable", {})
     return request_out
@@ -184,52 +196,52 @@ def main_scrap_linkedin():
         key_word = job_options["key_word"]
 
         # Get the request for listing jobs
-        api_requests_responses = get_network_requests(f"https://www.linkedin.com/jobs/search?distance=25&geoId={geo_id}&keywords={key_word}&origin=JOBS_HOME_SEARCH_CARDS&start=125")
+        api_requests_responses = get_headers(f"https://www.linkedin.com/jobs/search?distance=25&geoId={geo_id}&keywords={key_word}&origin=JOBS_HOME_SEARCH_CARDS&start=125", "JobSearchCardsCollection-215")
+        if api_requests_responses is not None:
+            # Remove count and start uri parameter from url
+            list_job_base_url = f"https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-215&q=jobSearch&query=(origin:JOBS_HOME_SEARCH_CARDS,keywords:{key_word},locationUnion:(geoId:{geo_id}),selectedFilters:(distance:List(25)),spellCorrectionEnabled:true)"
+            linkedin_headers = api_requests_responses["headers"]
 
-        # Remove count and start uri parameter from url
-        list_job_base_url = f"https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-215&q=jobSearch&query=(origin:JOBS_HOME_SEARCH_CARDS,keywords:{key_word},locationUnion:(geoId:{geo_id}),selectedFilters:(distance:List(25)),spellCorrectionEnabled:true)"
-        linkedin_headers = api_requests_responses
+            # Get the max count of jobs to get from the API
+            response_json = get_jobs(list_job_base_url, linkedin_headers, count=1, start=0)
 
-        # Get the max count of jobs to get from the API
-        response_json = get_jobs(list_job_base_url, linkedin_headers, count=1, start=0)
+            if response_json is not None:
+                max_jobs = response_json["data"]["paging"]["total"]
+                count = 50
+                linkedin_jobs_loaded = jobs_read_write.read_linkedin_jobs()
+                for i in range(math.ceil(max_jobs/count)):
+                    # Fetch jobs 50 elements at a time
+                    response_json = get_jobs(list_job_base_url, linkedin_headers, count=count, start=(count*i))
+                    if response_json is not None:
+                        jobs = response_json["included"]
+                        jobs = [job for job in jobs if "jobPostingUrn" in job]
+                        jobs_to_save = []
+                        for job in jobs:
+                            published_date = [row for row in job["footerItems"] if "timeAt" in row][0]
+                            job_id = job["jobPostingUrn"].split(":")[-1]
+                            job_to_save = {"job_id": job_id,
+                                           "job_title": job["jobPostingTitle"],
+                                           "job_published_date": published_date,
+                                           "job_employer": job["primaryDescription"]["text"],
+                                           "job_city": job["secondaryDescription"]["text"],
+                                           "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}"}
 
-        if response_json is not None:
-            max_jobs = response_json["data"]["paging"]["total"]
-            count = 50
-            linkedin_jobs_loaded = jobs_read_write.read_linkedin_jobs()
-            for i in range(math.ceil(max_jobs/count)):
-                # Fetch jobs 50 elements at a time
-                response_json = get_jobs(list_job_base_url, linkedin_headers, count=count, start=(count*i))
-                if response_json is not None:
-                    jobs = response_json["included"]
-                    jobs = [job for job in jobs if "jobPostingUrn" in job]
-                    jobs_to_save = []
-                    for job in jobs:
-                        published_date = [row for row in job["footerItems"] if "timeAt" in row][0]
-                        job_id = job["jobPostingUrn"].split(":")[-1]
-                        job_to_save = {"job_id": job_id,
-                                       "job_title": job["jobPostingTitle"],
-                                       "job_published_date": published_date,
-                                       "job_employer": job["primaryDescription"]["text"],
-                                       "job_city": job["secondaryDescription"]["text"],
-                                       "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}"}
-
-                        # Check for duplicates in saved jobs
-                        duplicates = False
-                        for saved_job in linkedin_jobs_loaded:
-                            if saved_job["job_id"] == job_to_save["job_id"]:
-                                duplicates = True
-                        if not duplicates:
-                            job_detail = get_job_detail(job_to_save["job_id"], headers=linkedin_headers)
-                            job_to_save["job_description"] = job_detail["data"]["description"]["text"]
-                            job_to_save["job_industry"] = job_detail["data"]["formattedIndustries"]
-                            job_to_save["job_function"] = job_detail["data"]["formattedJobFunctions"]
-                            job_to_save["job_location"] = job_detail["data"]["formattedLocation"]
-                            job_to_save["job_level"] = job_detail["data"]["formattedExperienceLevel"]
-                            job_to_save["job_employment_status"] = job_detail["data"]["formattedEmploymentStatus"]
-                            linkedin_jobs_loaded.append(job_to_save)
-                    with open(const.linkedin_jobs_output_file_link, "w") as f:
-                        json.dump(linkedin_jobs_loaded, f)
+                            # Check for duplicates in saved jobs
+                            duplicates = False
+                            for saved_job in linkedin_jobs_loaded:
+                                if saved_job["job_id"] == job_to_save["job_id"]:
+                                    duplicates = True
+                            if not duplicates:
+                                job_detail = get_job_detail(job_to_save["job_id"], headers=linkedin_headers)
+                                job_to_save["job_description"] = job_detail["data"]["description"]["text"]
+                                job_to_save["job_industry"] = job_detail["data"]["formattedIndustries"]
+                                job_to_save["job_function"] = job_detail["data"]["formattedJobFunctions"]
+                                job_to_save["job_location"] = job_detail["data"]["formattedLocation"]
+                                job_to_save["job_level"] = job_detail["data"]["formattedExperienceLevel"]
+                                job_to_save["job_employment_status"] = job_detail["data"]["formattedEmploymentStatus"]
+                                linkedin_jobs_loaded.append(job_to_save)
+                        with open(const.linkedin_jobs_output_file_link, "w") as f:
+                            json.dump(linkedin_jobs_loaded, f)
 
     # Close the browser
     driver.quit()

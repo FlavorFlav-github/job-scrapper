@@ -3,6 +3,8 @@
 # 2024-11-08 - 2.0.0
 #### Added
 - Added linkedin jobs scrapper
+- Added endpoint to get jobs from linkedin
+
 # 2024-10-25 - 1.2.0
 #### Added
 - Added a language identification of the job offer
