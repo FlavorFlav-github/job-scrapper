@@ -81,14 +81,14 @@ def check_captcha():
 
             # Take a screenshot of the element
             img_png = img_element.screenshot_as_png
-            img_name = f"../linkedin-scrap-jobs/image_{id}.png"
+            img_name = f"../linkedin-scrap-jobs-data/image_{id}.png"
             # Open the image in PIL and save it as PNG
             img = Image.open(BytesIO(img_png))
             img.save(img_name)
             images.append(img_name)
         # Load the correct image
-        templates = ['../linkedin-scrap-jobs/correct_image_captcha_2.png',
-                     '../linkedin-scrap-jobs/correct_image_captcha_3.png']
+        templates = ['../linkedin-scrap-jobs-data/correct_image_captcha_2.png',
+                     '../linkedin-scrap-jobs-data/correct_image_captcha_3.png']
         results = []
         for template_url in templates:
             template = cv2.imread(template_url, cv2.IMREAD_GRAYSCALE)
