@@ -1,5 +1,9 @@
 # Jobs Scrapper
 
+# 2024-11-14 - 2.1.0
+#### Modified
+- Modify the captcha chek for linkedin that is now using a Gemini prompt to identify the image to click on
+
 # 2024-11-08 - 2.0.0
 #### Added
 - Added linkedin jobs scrapper
