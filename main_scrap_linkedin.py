@@ -110,11 +110,12 @@ def check_captcha():
         response = model.generate_content(prompt_content)
         # Convert the response to json
         json_response = json.loads(response.text.replace("```", "").replace("json", "").replace("'", '"'))
-
+        print(f'Gemini response : {json_response}')
         # Click the image to resolve the captcha
         for img in images:
             if img["image_name"] in json_response and json_response[img["image_name"]]:
                 img["driver_element"].click()
+                print(f"Clicked on the image {img['image_name']}")
                 break
     def resolve_captcha():
         images = []
