@@ -210,7 +210,7 @@ def check_captcha():
         time.sleep(3)
         driver.switch_to.default_content()
         loop_time += 1
-        if loop_time == 5:
+        if loop_time == 8:
             success = False
             break
         else:
