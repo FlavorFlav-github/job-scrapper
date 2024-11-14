@@ -157,31 +157,52 @@ for original_page in pages_url:
                         if pageNumber and pageNumber not in cursor_processed and not any(c.get("pageNumber") == pageNumber for c in cursor_loaded):
                             cursor_loaded.append(new_cursor)
 
+job_listing_mapped = []
 # Add a datePosted attribute
 for i in range(len(job_listings)):
+    job = {"job_id": job_listings[i]["jobview"]["job"]["listingId"],
+     "job_title": job[i]["jobview"]["header"]["jobTitleText"],
+     "job_city": job[i]["jobview"]["header"]["locationName"],
+     "job_url": f'https://www.glassdoor.fr/{job[i]["jobview"]["header"]["jobLink"]}',
+     "job_description": job[i]["jobview"]["job"]["descriptionFragmentsText"][0],
+     "job_industry": None,
+     "job_function": None,
+     "job_location": job[i]["jobview"]["header"]["locationName"],
+     "job_level": None,
+     "job_employment_status": None,
+     "job_origin": "Glassdoor"}
+
     if "jobview" in job_listings[i] and job_listings[i]["jobview"]:
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
-                job_listings[i]["datePosted"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
+                job["job_published_date"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
         if "job" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["job"]:
             if "descriptionFragmentsText" in job_listings[i]["jobview"]["job"] and job_listings[i]["jobview"]["job"]["descriptionFragmentsText"]:
-                job_listings[i]["language"], job_listings[i]["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
+                job["language"], job_listings[i]["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
+        if "overview" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["overview"]:
+            if job_listings[i]["jobview"]["overview"]["shortName"] is not None:
+                job["job_employer"] = job_listings[i]["jobview"]["overview"]["shortName"]
+            else:
+                job["job_employer"] = job_listings[i]["jobview"]["header"]["employerNameFromSearch"]
+    job_listing_mapped.append(job)
+# Mapping data
+
 
 # Load jobs from file
 job_listing_loaded = jobs_read_write.read_glassdoor_jobs()
 
 # Merging existing jobs with new jobs
-for new_jobs in job_listings:
+for new_jobs in job_listing_mapped:
         found = 0
         for old_jobs in job_listing_loaded:
-            if new_jobs["jobview"]["job"]["listingId"] == old_jobs["jobview"]["job"]["listingId"]:
+            if new_jobs["job_id"] == old_jobs["job_id"]:
                 found = 1
                 break
         if found == 0:
             job_listing_loaded.append(new_jobs)
 
 current_date = datetime.now() - timedelta(days=45)
-filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted" in job and (job["datePosted"] is not None and job["datePosted"] != "") and datetime.strptime(job["datePosted"], '%Y-%m-%dT%H:%M:%S.%f') > current_date]
+filter_job_listings_on_date = [job for job in job_listing_loaded if "job_published_date" in job and (job["job_published_date"] is not None and job["job_published_date"] != "") and datetime.strptime(job["job_published_date"], '%Y-%m-%dT%H:%M:%S.%f') > current_date]
 
 
 # Saving the list of jobs to file

@@ -17,6 +17,7 @@ new_jobs_lookback = 6
 linkedin_search_parameter = [{"key_word": "data%20analyst", "geo_id": "90009604"},
                              {"key_word": "business%20intelligence", "geo_id": "90009604"},
                              {"key_word": "power%20bi", "geo_id": "90009604"}]
+
 pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm", "seo" : "bruxelles-belgique-data-analyst-emplois", "url_input" : "IL.0,18_IS3845_KO19,31", "location_id": 3845, "location_type": "STATE", "key_word": "data-analyst"},
              {"url": "https://www.glassdoor.fr/Emploi/bruxelles-business-intelligence-emplois-SRCH_IL.0,9_IS3845_KO10,31.htm", "seo" : "bruxelles-business-intelligence-emplois", "url_input" : "IL.0,9_IS3845_KO10,31", "location_id": 3845, "location_type": "STATE", "key_word": "business-intelligence"},
              {"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-data-analyst-emplois-SRCH_IL.0,23_IC4990924_KO24,36.htm", "seo" : "munich-bayern-allemagne-data-analyst", "url_input" : "IL.0,23_IC4990924_KO24,36", "location_id": 4990924, "location_type": "CITY", "key_word": "data-analyst"},

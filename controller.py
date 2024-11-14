@@ -1,16 +1,10 @@
-import json
-import os
-from flask import Flask, request, jsonify, send_file
+import jobs_read_write
+from flask import Flask, request, jsonify
 
 
-current_script_path = os.path.dirname(os.path.abspath(__file__))
-Base_directory = current_script_path + os.path.sep
-glassdoor_jobs_output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
-glassdoor_jobs_output_file_link = f"{glassdoor_jobs_output_directory}job_listings_glassdoor.json"
-linkedin_jobs_output_directory = f"{Base_directory}../linkedin-scrap-jobs-data/"
-glassdoor_jobs_output_file_link = f"{linkedin_jobs_output_directory}job_listings_linkedin.json"
 app = Flask(__name__)
-expectedToken="MyTokenSecure123"
+expectedToken = "MyTokenSecure123"
+
 
 # Decorator to check for the mandatory header
 def require_id_connect_header(expected_value):
@@ -28,25 +22,15 @@ def require_id_connect_header(expected_value):
 @app.route('/get_glassdoor_jobs')
 @require_id_connect_header(expected_value=expectedToken)
 def read_glassdoor_jobs():
-    try:  
-        with open(glassdoor_jobs_output_file_link, "r") as f:
-            job_listing_loaded = json.load(f) 
-            return jsonify({'message': job_listing_loaded})
-    except Exception as e:
-        print("Could not read the file job_listings_glassdoor.json", e)
-        return jsonify({'message': f'Could not read the job file : {e}'})
+    jobs = jobs_read_write.read_glassdoor_jobs()
+    return jsonify({'message': jobs})
 
 
 @app.route('/get_linkedin_jobs')
 @require_id_connect_header(expected_value=expectedToken)
 def read_linkedin_jobs():
-    try:
-        with open(glassdoor_jobs_output_file_link, "r") as f:
-            job_listing_loaded = json.load(f)
-            return jsonify({'message': job_listing_loaded})
-    except Exception as e:
-        print("Could not read the file job_listings_linkedin.json", e)
-        return jsonify({'message': f'Could not read the job file : {e}'})
+    jobs = jobs_read_write.read_linkedin_jobs()
+    return jsonify({'message': jobs})
 
 
 if __name__ == '__main__':

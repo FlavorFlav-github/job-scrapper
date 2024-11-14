@@ -19,11 +19,11 @@ def filter_new_added_jobs(jobs, fromHour, keywords_in, keyword_out):
 
     # Filtering the jobs to only have the one created in the last 12 hours
     current_date = datetime.now() - timedelta(hours=fromHour)
-    filter_job_listings_on_date = [job for job in job_listing_loaded if "datePosted" in job and (job["datePosted"] is not None and job["datePosted"] != "") and datetime.strptime(job["datePosted"], '%Y-%m-%dT%H:%M:%S.%f') > current_date]
+    filter_job_listings_on_date = [job for job in job_listing_loaded if "job_published_date" in job and (job["job_published_date"] is not None and job["job_published_date"] != "") and datetime.strptime(job["job_published_date"], '%Y-%m-%dT%H:%M:%S.%f') > current_date]
 
     # Adding the job title lower to filter on it
     for i in range(len(filter_job_listings_on_date)):
-        filter_job_listings_on_date[i]["jobTitleLower"] = filter_job_listings_on_date[i]["jobview"]["header"]["jobTitleText"].lower()
+        filter_job_listings_on_date[i]["jobTitleLower"] = filter_job_listings_on_date[i]["job_title"].lower()
 
     # Filtering the job to only have the one including specific keywords in the job title
     acceptedTitle = keywords_in
@@ -43,11 +43,11 @@ def send_new_added_jobs(job_listing_loaded, fromHour):
 
     # Send the new added jobs by telegram
     for job in filter_job_listings_filter_not_accepted_title:
-        job_title = job["jobview"]["header"]["jobTitleText"]
-        employer_name = job["jobview"]["header"]["employer"]["name"] if "name" in job["jobview"]["header"][
-            "employer"] else job["jobview"]["header"]["employerNameFromSearch"]
-        location = job["jobview"]["header"]["locationName"]
-        joblink = job["jobview"]["header"]["jobLink"]
-        joblink_c = f"https://www.glassdoor.fr/{joblink}"
+        job_title = job["job_title"]
+        employer_name = job["job_employer"]
+        location = job["job_location"]
+        joblink = job["job_url"]
         telegramBot.send_message(f'{job_title}\n{employer_name}\n{location}\n<a href="{joblink_c}">Go to job</a>')
+
+
 

@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from skimage .metrics import structural_similarity as ssim
 import jobs_read_write
+import check_new_added_jobs
 import time
 import json
 import const
@@ -224,13 +225,15 @@ def main_scrap_linkedin():
                                            "job_published_date": published_date,
                                            "job_employer": job["primaryDescription"]["text"],
                                            "job_city": job["secondaryDescription"]["text"],
-                                           "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}"}
+                                           "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}",
+                                           "job_origin": "Linkedin"}
 
                             # Check for duplicates in saved jobs
                             duplicates = False
                             for saved_job in linkedin_jobs_loaded:
                                 if saved_job["job_id"] == job_to_save["job_id"]:
                                     duplicates = True
+                                    break
                             if not duplicates:
                                 job_detail = get_job_detail(job_to_save["job_id"], headers=linkedin_headers)
                                 job_to_save["job_description"] = job_detail["data"]["description"]["text"]
@@ -246,5 +249,8 @@ def main_scrap_linkedin():
     # Close the browser
     driver.quit()
 
+    # Send the newly added jobs
+    check_new_added_jobs.send_new_added_jobs(linkedin_jobs_loaded, const.new_jobs_lookback)
 
-main_scrap_linkedin()
+if __name__ == '__main__':
+    main_scrap_linkedin()
