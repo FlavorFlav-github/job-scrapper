@@ -183,7 +183,7 @@ def check_captcha():
     check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
     loop_time = 0
     success = True
-    driver.execute_script("document.body.style.zoom = '0.8'")
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     while check_captcha_length > 0:
 
         print("Captcha found, start resolving captcha")
