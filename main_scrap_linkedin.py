@@ -73,6 +73,9 @@ def get_headers(url, template):
 
 def check_captcha():
     def resolve_captcha_v2():
+        # Instantiate Gemini API
+        genai.configure(api_key=const.gemini_api_key)
+
         # Upload images to genai
         image_list = driver.find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
         images = []

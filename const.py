@@ -12,6 +12,7 @@ notAcceptedTitle = ["senior", "stage", "intern"]
 location_type_mapping = {"IS": "STATE", "IC": "CITY", "IN": "COUNTRY"}
 linkedin_username = "yassine.elhaouari@outlook.fr"
 linkedin_password = "#WuTangClan1989#"
+gemini_api_key = "AIzaSyC6PdT-QJQ3X4m6Kp1UG3m5WZ8u-TzH2Do"
 linkedin_cookie = ""
 new_jobs_lookback = 6
 linkedin_search_parameter = [{"key_word": "data%20analyst", "geo_id": "90009604"},
