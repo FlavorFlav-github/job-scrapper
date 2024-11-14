@@ -185,7 +185,7 @@ def check_captcha():
     success = True
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     while check_captcha_length > 0:
-
+        screenshot_page(loop_time)
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
         driver.switch_to.frame(iframe_1)
@@ -208,7 +208,7 @@ def check_captcha():
         except Exception:
             pass
         time.sleep(2)
-        screenshot_page(loop_time)
+
         resolve_captcha_v2()
         time.sleep(3)
         driver.switch_to.default_content()
