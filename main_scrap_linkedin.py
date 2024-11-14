@@ -175,12 +175,12 @@ def check_captcha():
     loop_time = 0
     success = True
     while check_captcha_length > 0:
-        with open(f"../linkedin-scrap-jobs-data/page_html_{loop_time}.html", "w") as f:
-            f.write(driver.page_source)
+
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
         driver.switch_to.frame(iframe_1)
-
+        with open(f"../linkedin-scrap-jobs-data/page_html_{loop_time}.html", "w") as f:
+            f.write(driver.page_source)
         iframe_2 = driver.find_element(By.ID, "arkoseframe")
         driver.switch_to.frame(iframe_2)
 
