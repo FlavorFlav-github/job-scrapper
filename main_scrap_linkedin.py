@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from skimage .metrics import structural_similarity as ssim
+import google.generativeai as genai
 import jobs_read_write
 import check_new_added_jobs
 import time
@@ -71,6 +72,47 @@ def get_headers(url, template):
 
 
 def check_captcha():
+    def resolve_captcha_v2():
+        # Upload images to genai
+        image_list = driver.find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
+        images = []
+        images_id_array = []
+        json_structure_for_prompt = {}
+        for img in image_list:
+            img_id = img.get_attribute('id')
+            print(f"Fetching image with id {img.get_attribute('id')}")
+            image_represented = img.find_element(By.TAG_NAME, "a")
+            img_png = image_represented.screenshot_as_png
+            img_name = f"../linkedin-scrap-jobs-data/{img_id}.png"
+            # Open the image in PIL and save it as PNG
+            img = Image.open(BytesIO(img_png))
+            img.save(img_name)
+            image_gen_ai = genai.upload_file(path=img_name, display_name=img_id)
+            images_id_array.append(image_gen_ai)
+            json_structure_for_prompt[img_id] = True
+            images.append({"image_name": img_id, "image_link": img_name, "gen_ai_img": image_gen_ai,
+                           "driver_element": image_represented})
+
+        # Get the text to ask the ai
+        text_gan_ai = driver.find_element(By.ID, "game_children_text").find_element(By.TAG_NAME, "h2").text
+        print(f"Question to ask : {text_gan_ai}")
+
+        # Send text request to genai to get gthe correct image to click on
+        # Choose a Gemini model.
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+
+        prompt_content = [
+                             f"I want the response to be a json in the format {json.dumps(json_structure_for_prompt)} Attribute the value true only to the image that responds the best to the following question : {text_gan_ai}"] + images_id_array
+        # Prompt the model with text and the previously uploaded image.
+        response = model.generate_content(prompt_content)
+        # Convert the response to json
+        json_response = json.loads(response.text.replace("```", "").replace("json", "").replace("'", '"'))
+
+        # Click the image to resolve the captcha
+        for img in images:
+            if img["image_name"] in json_response and json_response[img["image_name"]]:
+                img["driver_element"].click()
+                break
     def resolve_captcha():
         images = []
         print(driver.page_source)
@@ -119,6 +161,8 @@ def check_captcha():
 
     print("Start to check page for captcha")
     check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
+    loop_time = 0
+    success = True
     while check_captcha_length > 0:
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
@@ -139,11 +183,17 @@ def check_captcha():
         verify_button = driver.find_element(By.XPATH, '//button[text()="Vérifier"]')
         verify_button.click()
 
-        resolve_captcha()
+        resolve_captcha_v2()
         time.sleep(3)
-        check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
-    driver.switch_to.default_content()
+        driver.switch_to.default_content()
+        loop_time += 1
+        if loop_time == 5:
+            success = False
+            break
+        else:
+            check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
     print("Check for captcha terminated")
+    return success
 
 
 def get_jobs(url, headers, count, start):
@@ -189,69 +239,70 @@ def main_scrap_linkedin():
 
     # Check the page for a captcha
     time.sleep(5)
-    check_captcha()
+    success = check_captcha()
+    if success:
+        # Wait until it is redirected to the main page of linkedin
+        WebDriverWait(driver, 300).until(EC.url_contains("linkedin.com/feed"))
+        for job_options in const.linkedin_search_parameter:
+            geo_id = job_options["geo_id"]
+            key_word = job_options["key_word"]
 
-    # Wait until it is redirected to the main page of linkedin
-    WebDriverWait(driver, 300).until(EC.url_contains("linkedin.com/feed"))
-    for job_options in const.linkedin_search_parameter:
-        geo_id = job_options["geo_id"]
-        key_word = job_options["key_word"]
+            # Get the request for listing jobs
+            api_requests_responses = get_headers(f"https://www.linkedin.com/jobs/search?distance=25&geoId={geo_id}&keywords={key_word}&origin=JOBS_HOME_SEARCH_CARDS&start=125", "JobSearchCardsCollection-215")
+            if api_requests_responses is not None:
+                # Remove count and start uri parameter from url
+                list_job_base_url = f"https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-215&q=jobSearch&query=(origin:JOBS_HOME_SEARCH_CARDS,keywords:{key_word},locationUnion:(geoId:{geo_id}),selectedFilters:(distance:List(25)),spellCorrectionEnabled:true)"
+                linkedin_headers = api_requests_responses["headers"]
 
-        # Get the request for listing jobs
-        api_requests_responses = get_headers(f"https://www.linkedin.com/jobs/search?distance=25&geoId={geo_id}&keywords={key_word}&origin=JOBS_HOME_SEARCH_CARDS&start=125", "JobSearchCardsCollection-215")
-        if api_requests_responses is not None:
-            # Remove count and start uri parameter from url
-            list_job_base_url = f"https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-215&q=jobSearch&query=(origin:JOBS_HOME_SEARCH_CARDS,keywords:{key_word},locationUnion:(geoId:{geo_id}),selectedFilters:(distance:List(25)),spellCorrectionEnabled:true)"
-            linkedin_headers = api_requests_responses["headers"]
+                # Get the max count of jobs to get from the API
+                response_json = get_jobs(list_job_base_url, linkedin_headers, count=1, start=0)
 
-            # Get the max count of jobs to get from the API
-            response_json = get_jobs(list_job_base_url, linkedin_headers, count=1, start=0)
+                if response_json is not None:
+                    max_jobs = response_json["data"]["paging"]["total"]
+                    count = 50
+                    linkedin_jobs_loaded = jobs_read_write.read_linkedin_jobs()
+                    for i in range(math.ceil(max_jobs/count)):
+                        # Fetch jobs 50 elements at a time
+                        response_json = get_jobs(list_job_base_url, linkedin_headers, count=count, start=(count*i))
+                        if response_json is not None:
+                            jobs = response_json["included"]
+                            jobs = [job for job in jobs if "jobPostingUrn" in job]
+                            jobs_to_save = []
+                            for job in jobs:
+                                published_date = [row for row in job["footerItems"] if "timeAt" in row][0]
+                                job_id = job["jobPostingUrn"].split(":")[-1]
+                                job_to_save = {"job_id": job_id,
+                                               "job_title": job["jobPostingTitle"],
+                                               "job_published_date": published_date,
+                                               "job_employer": job["primaryDescription"]["text"],
+                                               "job_city": job["secondaryDescription"]["text"],
+                                               "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}",
+                                               "job_origin": "Linkedin"}
 
-            if response_json is not None:
-                max_jobs = response_json["data"]["paging"]["total"]
-                count = 50
-                linkedin_jobs_loaded = jobs_read_write.read_linkedin_jobs()
-                for i in range(math.ceil(max_jobs/count)):
-                    # Fetch jobs 50 elements at a time
-                    response_json = get_jobs(list_job_base_url, linkedin_headers, count=count, start=(count*i))
-                    if response_json is not None:
-                        jobs = response_json["included"]
-                        jobs = [job for job in jobs if "jobPostingUrn" in job]
-                        jobs_to_save = []
-                        for job in jobs:
-                            published_date = [row for row in job["footerItems"] if "timeAt" in row][0]
-                            job_id = job["jobPostingUrn"].split(":")[-1]
-                            job_to_save = {"job_id": job_id,
-                                           "job_title": job["jobPostingTitle"],
-                                           "job_published_date": published_date,
-                                           "job_employer": job["primaryDescription"]["text"],
-                                           "job_city": job["secondaryDescription"]["text"],
-                                           "job_url": f"https://www.linkedin.com/jobs/search/?currentJobId={job_id}",
-                                           "job_origin": "Linkedin"}
-
-                            # Check for duplicates in saved jobs
-                            duplicates = False
-                            for saved_job in linkedin_jobs_loaded:
-                                if saved_job["job_id"] == job_to_save["job_id"]:
-                                    duplicates = True
-                                    break
-                            if not duplicates:
-                                job_detail = get_job_detail(job_to_save["job_id"], headers=linkedin_headers)
-                                job_to_save["job_description"] = job_detail["data"]["description"]["text"]
-                                job_to_save["job_industry"] = job_detail["data"]["formattedIndustries"]
-                                job_to_save["job_function"] = job_detail["data"]["formattedJobFunctions"]
-                                job_to_save["job_location"] = job_detail["data"]["formattedLocation"]
-                                job_to_save["job_level"] = job_detail["data"]["formattedExperienceLevel"]
-                                job_to_save["job_employment_status"] = job_detail["data"]["formattedEmploymentStatus"]
-                                linkedin_jobs_loaded.append(job_to_save)
-                        with open(const.linkedin_jobs_output_file_link, "w") as f:
-                            json.dump(linkedin_jobs_loaded, f)
-
+                                # Check for duplicates in saved jobs
+                                duplicates = False
+                                for saved_job in linkedin_jobs_loaded:
+                                    if saved_job["job_id"] == job_to_save["job_id"]:
+                                        duplicates = True
+                                        break
+                                if not duplicates:
+                                    job_detail = get_job_detail(job_to_save["job_id"], headers=linkedin_headers)
+                                    job_to_save["job_description"] = job_detail["data"]["description"]["text"]
+                                    job_to_save["job_industry"] = job_detail["data"]["formattedIndustries"]
+                                    job_to_save["job_function"] = job_detail["data"]["formattedJobFunctions"]
+                                    job_to_save["job_location"] = job_detail["data"]["formattedLocation"]
+                                    job_to_save["job_level"] = job_detail["data"]["formattedExperienceLevel"]
+                                    job_to_save["job_employment_status"] = job_detail["data"]["formattedEmploymentStatus"]
+                                    linkedin_jobs_loaded.append(job_to_save)
+                            with open(const.linkedin_jobs_output_file_link, "w") as f:
+                                json.dump(linkedin_jobs_loaded, f)
+        # Send the newly added jobs
+        check_new_added_jobs.send_new_added_jobs(linkedin_jobs_loaded, const.new_jobs_lookback)
+    else:
+        print("Captcha was not resoled successfully")
     # Close the browser
     driver.quit()
 
-    # Send the newly added jobs
-    check_new_added_jobs.send_new_added_jobs(linkedin_jobs_loaded, const.new_jobs_lookback)
 
 if __name__ == '__main__':
     main_scrap_linkedin()
