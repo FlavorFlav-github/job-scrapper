@@ -112,7 +112,7 @@ def check_captcha():
         model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
         prompt_content = [
-                             f"I want the response to be a json in the format {json.dumps(json_structure_for_prompt)} Attribute the value true only to the image that responds the best to the following question : {text_gan_ai}"] + images_id_array
+                             f"I want the response to be a json in the format {json.dumps(json_structure_for_prompt)} Attribute the value true only to the image that responds the best to the following question : {text_gan_ai}, Ne pas tenir comptes des couleurs, seulement des formes"] + images_id_array
         # Prompt the model with text and the previously uploaded image.
         response = model.generate_content(prompt_content)
         # Convert the response to json
