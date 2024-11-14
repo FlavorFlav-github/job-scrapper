@@ -17,7 +17,7 @@ import math
 
 # Set up Chrome options
 chrome_options = webdriver.ChromeOptions()
-##chrome_options.add_argument("--headless")  # Enable headless mode
+chrome_options.add_argument("--headless")  # Enable headless mode
 chrome_options.add_argument("--disable-gpu")  # (optional) To avoid some issues on Windows
 chrome_options.add_argument("--no-sandbox")  # (optional) Useful for running in Docker
 chrome_options.add_argument("--disable-dev-shm-usage")  # (optional) To avoid some memory issues
