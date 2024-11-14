@@ -174,6 +174,7 @@ def check_captcha():
     check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
     loop_time = 0
     success = True
+    driver.execute_script("document.body.style.zoom = '0.8'")
     while check_captcha_length > 0:
 
         # Take a screenshot of the element
