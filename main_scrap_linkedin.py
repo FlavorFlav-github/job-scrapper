@@ -6,6 +6,7 @@ import cv2
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from skimage .metrics import structural_similarity as ssim
 import google.generativeai as genai
 import jobs_read_write
@@ -81,10 +82,15 @@ def check_captcha():
         images = []
         images_id_array = []
         json_structure_for_prompt = {}
+        # Create an ActionChains object
+        actions = ActionChains(driver)
         for img in image_list:
             img_id = img.get_attribute('id')
             print(f"Fetching image with id {img.get_attribute('id')}")
             image_represented = img.find_element(By.TAG_NAME, "a")
+            # Move the cursor to the element and hover
+            actions.move_to_element(image_represented).perform()
+            time.sleep(1)
             img_png = image_represented.screenshot_as_png
             img_name = f"../linkedin-scrap-jobs-data/{img_id}.png"
             # Open the image in PIL and save it as PNG
