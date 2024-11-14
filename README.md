@@ -1,4 +1,4 @@
-# Glassdoor Jobs Scrapper
+# Jobs Scrapper
 
 # 2024-11-08 - 2.0.0
 #### Added
