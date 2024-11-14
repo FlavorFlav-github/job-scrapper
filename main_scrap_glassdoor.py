@@ -161,13 +161,13 @@ job_listing_mapped = []
 # Add a datePosted attribute
 for i in range(len(job_listings)):
     job = {"job_id": job_listings[i]["jobview"]["job"]["listingId"],
-     "job_title": job[i]["jobview"]["header"]["jobTitleText"],
-     "job_city": job[i]["jobview"]["header"]["locationName"],
-     "job_url": f'https://www.glassdoor.fr/{job[i]["jobview"]["header"]["jobLink"]}',
-     "job_description": job[i]["jobview"]["job"]["descriptionFragmentsText"][0],
+     "job_title": job_listings[i]["jobview"]["header"]["jobTitleText"],
+     "job_city": job_listings[i]["jobview"]["header"]["locationName"],
+     "job_url": f'https://www.glassdoor.fr/{job_listings[i]["jobview"]["header"]["jobLink"]}',
+     "job_description": job_listings[i]["jobview"]["job"]["descriptionFragmentsText"][0],
      "job_industry": None,
      "job_function": None,
-     "job_location": job[i]["jobview"]["header"]["locationName"],
+     "job_location": job_listings[i]["jobview"]["header"]["locationName"],
      "job_level": None,
      "job_employment_status": None,
      "job_origin": "Glassdoor"}
@@ -178,7 +178,7 @@ for i in range(len(job_listings)):
                 job["job_published_date"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
         if "job" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["job"]:
             if "descriptionFragmentsText" in job_listings[i]["jobview"]["job"] and job_listings[i]["jobview"]["job"]["descriptionFragmentsText"]:
-                job["language"], job_listings[i]["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
+                job["language"], job["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
         if "overview" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["overview"]:
             if job_listings[i]["jobview"]["overview"]["shortName"] is not None:
                 job["job_employer"] = job_listings[i]["jobview"]["overview"]["shortName"]
