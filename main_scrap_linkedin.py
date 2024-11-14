@@ -177,7 +177,7 @@ def check_captcha():
     while check_captcha_length > 0:
 
         # Take a screenshot of the element
-        img_png = driver.find_element(By.TAG_NAME, "html")
+        img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
         img_name = f"../linkedin-scrap-jobs-data/page_html_{loop_time}.png"
         # Open the image in PIL and save it as PNG
         img = Image.open(BytesIO(img_png))
