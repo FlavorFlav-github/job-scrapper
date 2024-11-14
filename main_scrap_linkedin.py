@@ -183,9 +183,11 @@ def check_captcha():
         iframe_5 = driver.find_element(By.ID, "CaptchaFrame")
         driver.switch_to.frame(iframe_5)
 
-        verify_button = driver.find_element(By.XPATH, '//button[text()="Vérifier"]')
-        verify_button.click()
-
+        try:
+            verify_button = driver.find_element(By.XPATH, '//button[text()="Vérifier"]')
+            verify_button.click()
+        except Exception:
+            pass
         resolve_captcha_v2()
         time.sleep(3)
         driver.switch_to.default_content()
