@@ -32,6 +32,15 @@ chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 driver = webdriver.Chrome(options=chrome_options)
 
 
+def screenshot_page(id_screen):
+    # Take a screenshot of the element
+    img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
+    img_name = f"../linkedin-scrap-jobs-data/page_html_{id_screen}.png"
+    # Open the image in PIL and save it as PNG
+    img = Image.open(BytesIO(img_png))
+    img.save(img_name)
+
+
 # Function to capture API requests and responses
 def get_headers(url, template):
     print("Start to get cookies")
@@ -177,13 +186,6 @@ def check_captcha():
     driver.execute_script("document.body.style.zoom = '0.8'")
     while check_captcha_length > 0:
 
-        # Take a screenshot of the element
-        img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
-        img_name = f"../linkedin-scrap-jobs-data/page_html_{loop_time}.png"
-        # Open the image in PIL and save it as PNG
-        img = Image.open(BytesIO(img_png))
-        img.save(img_name)
-
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
         driver.switch_to.frame(iframe_1)
@@ -205,7 +207,8 @@ def check_captcha():
             verify_button.click()
         except Exception:
             pass
-
+        time.sleep(2)
+        screenshot_page(loop_time)
         resolve_captcha_v2()
         time.sleep(3)
         driver.switch_to.default_content()
