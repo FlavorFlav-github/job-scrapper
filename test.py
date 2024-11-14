@@ -1,31 +1,18 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import json
+import google.generativeai as genai
 
 
-# Set up Chrome options
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Enable headless mode
-chrome_options.add_argument("--disable-gpu")  # (optional) To avoid some issues on Windows
-chrome_options.add_argument("--no-sandbox")  # (optional) Useful for running in Docker
-chrome_options.add_argument("--disable-dev-shm-usage")  # (optional) To avoid some memory issues
-# Set up logging preferences directly in Chrome options
-chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+genai.configure(api_key="AIzaSyC6PdT-QJQ3X4m6Kp1UG3m5WZ8u-TzH2Do")
 
-driver = webdriver.Chrome(options=chrome_options)
+image_1 = genai.upload_file(path="../linkedin-scrap-jobs/image_1.png", display_name="image_1")
+image_2 = genai.upload_file(path="../linkedin-scrap-jobs/image_2.png", display_name="image_2")
+image_3 = genai.upload_file(path="../linkedin-scrap-jobs/correct_image_captcha_3.png", display_name="image_3")
+image_4 = genai.upload_file(path="../linkedin-scrap-jobs/image_4.png", display_name="image_4")
+image_5 = genai.upload_file(path="../linkedin-scrap-jobs/image_5.png", display_name="image_5")
 
-# Now you can proceed with opening pages and capturing network logs as in the previous example
-driver.get("https://linkedin.com")  # Replace with your target URL
+# Choose a Gemini model.
+model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-# Your existing network requests capturing code goes here
-# Function to capture network requests
+# Prompt the model with text and the previously uploaded image.
+response = model.generate_content(["Give me the name of the well oriented image", image_1, image_2, image_3, image_4, image_5])
 
-
-# Fetch network requests
-requests = get_network_requests()
-for req in requests:
-    print(req)
-
-# Close the driver after completion
-driver.quit()
+print(response.text)

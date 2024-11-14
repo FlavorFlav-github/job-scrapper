@@ -73,6 +73,7 @@ def get_headers(url, template):
 def check_captcha():
     def resolve_captcha():
         images = []
+        print(driver.page_source)
         # Load the images
         for i in range(6):
             id=i+1
@@ -117,8 +118,8 @@ def check_captcha():
         return correct_image
 
     print("Start to check page for captcha")
-    check_captcha = len(driver.find_elements(By.ID, "captcha-internal"))
-    while check_captcha > 0:
+    check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
+    while check_captcha_length > 0:
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
         driver.switch_to.frame(iframe_1)
@@ -140,7 +141,7 @@ def check_captcha():
 
         resolve_captcha()
         time.sleep(3)
-        check_captcha = len(driver.find_elements(By.ID, "captcha-internal"))
+        check_captcha_length = len(driver.find_elements(By.ID, "captcha-internal"))
     driver.switch_to.default_content()
     print("Check for captcha terminated")
 
