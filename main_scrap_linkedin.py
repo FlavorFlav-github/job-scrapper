@@ -10,6 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from skimage .metrics import structural_similarity as ssim
 import google.generativeai as genai
 import jobs_read_write
+import datetime
 import check_new_added_jobs
 import time
 import json
@@ -174,6 +175,8 @@ def check_captcha():
     loop_time = 0
     success = True
     while check_captcha_length > 0:
+        with open(f"../linkedin-scrap-jobs-data/page_html_{loop_time}.html", "w") as f:
+            f.write(driver.page_source)
         print("Captcha found, start resolving captcha")
         iframe_1 = driver.find_element(By.ID, "captcha-internal")
         driver.switch_to.frame(iframe_1)
@@ -195,6 +198,7 @@ def check_captcha():
             verify_button.click()
         except Exception:
             pass
+
         resolve_captcha_v2()
         time.sleep(3)
         driver.switch_to.default_content()
@@ -274,14 +278,15 @@ def main_scrap_linkedin():
                     count = 50
                     linkedin_jobs_loaded = jobs_read_write.read_linkedin_jobs()
                     for i in range(math.ceil(max_jobs/count)):
+                        start_point = count*i
+                        count_point = min(count, max_jobs-start_point)
                         # Fetch jobs 50 elements at a time
-                        response_json = get_jobs(list_job_base_url, linkedin_headers, count=count, start=(count*i))
+                        response_json = get_jobs(list_job_base_url, linkedin_headers, count=count_point, start=start_point)
                         if response_json is not None:
                             jobs = response_json["included"]
                             jobs = [job for job in jobs if "jobPostingUrn" in job]
-                            jobs_to_save = []
                             for job in jobs:
-                                published_date = [row for row in job["footerItems"] if "timeAt" in row][0]
+                                published_date = datetime.datetime.fromtimestamp([row for row in job["footerItems"] if "timeAt" in row][0]["timeAt"] / 1000).strftime('%Y-%m-%dT%H:%M:%S.%f')
                                 job_id = job["jobPostingUrn"].split(":")[-1]
                                 job_to_save = {"job_id": job_id,
                                                "job_title": job["jobPostingTitle"],

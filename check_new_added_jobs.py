@@ -47,7 +47,7 @@ def send_new_added_jobs(job_listing_loaded, fromHour):
         employer_name = job["job_employer"]
         location = job["job_location"]
         joblink = job["job_url"]
-        telegramBot.send_message(f'{job_title}\n{employer_name}\n{location}\n<a href="{joblink_c}">Go to job</a>')
+        telegramBot.send_message(f'{job_title}\n{employer_name}\n{location}\n<a href="{joblink}">Go to job</a>')
 
 
 
