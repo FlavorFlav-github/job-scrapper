@@ -89,7 +89,7 @@ def get_headers(url, template):
 
 def check_captcha():
     def wait_for_response():
-        response_file = "../linkedin-scrap-jobs-data/captcha_check.json"
+        response_file = f"{const.linkedin_jobs_output_directory}captcha_check.json"
         response = None
         time.sleep(30)
 
@@ -109,7 +109,7 @@ def check_captcha():
     def resolve_captcha_v3():
         # Save the screen as png
         img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
-        img_name = f"../linkedin-scrap-jobs-data/page_html.png"
+        img_name = f"{const.linkedin_jobs_output_directory}page_html.png"
 
         # Open the image in PIL and save it as PNG
         img = Image.open(BytesIO(img_png))
