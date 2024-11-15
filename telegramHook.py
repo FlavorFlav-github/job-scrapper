@@ -11,7 +11,6 @@ def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main() -> None:
-    environment = const.env + "_" + const.server
     application = Application.builder().token(const.telegrambottoken).build()
 
     application.add_handler(CommandHandler(None, wait_captcha_response, has_args=False))
