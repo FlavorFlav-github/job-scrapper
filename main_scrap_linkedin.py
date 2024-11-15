@@ -105,7 +105,7 @@ def check_captcha():
 
         # Send the picture to telegram
         bot = Bot(token=const.telegrambottoken)
-        bot.send_photo(chat_id=const.telegrambotchatid, photo=open(img_name, 'rb'))
+        bot.send_file(chat_id=const.telegrambotchatid, file_path=img_name)
 
         # Wait or the response
         telegramHook.start_bot_thread()
