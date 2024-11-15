@@ -9,7 +9,7 @@ async def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TY
         raw_param = context.args[0]
         if "image" in raw_param:
             with open("../linkedin-scrap-jobs-data/captcha_check.json", "w") as f:
-                json.dump({"img_name": update.message.text}, f)
+                json.dump({"img_name": raw_param}, f)
 
 
 def main() -> None:
