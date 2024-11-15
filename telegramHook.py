@@ -1,7 +1,7 @@
 import const
 import json
 from telegram import Update
-from telegram.ext import CommandHandler, Application, ContextTypes
+from telegram.ext import CommandHandler, Application, ContextTypes, MessageHandler
 
 
 def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -13,7 +13,7 @@ def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main() -> None:
     application = Application.builder().token(const.telegrambottoken).build()
 
-    application.add_handler(CommandHandler(None, wait_captcha_response, has_args=False))
+    application.add_handler(MessageHandler(None, wait_captcha_response))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
