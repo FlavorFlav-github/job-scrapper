@@ -1,4 +1,5 @@
-from telegram.ext import Updater, MessageHandler, CommandHandler
+from telegram.ext import Updater, MessageHandler, CommandHandler, Application, ContextTypes
+from telegram import Update
 import threading
 import time
 import const
@@ -8,28 +9,24 @@ response = None
 updater = None
 
 
-def handle_response(update, context):
+def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global response
     global updater
 
-    if "Image" in update.message.text:
+    if "image" in update.message.text:
         response = update.message.text  # Store the user's response
         updater.stop()
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Response received!")
 
 
 def start_bot_thread():
-    global updater
-
     def start_bot():
-        updater = Updater(token=const.telegrambottoken, use_context=True)
-        dispatcher = updater.dispatcher
+        global updater
+        updater = Application.builder().token(const.telegrambottoken).build()
 
         # Message handler without using Filters
-        dispatcher.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
+        updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
 
-        updater.start_polling()
-        updater.idle()
+        updater.run_polling(allowed_updates=Update.ALL_TYPES)
 
     # Run the bot in a separate thread
     bot_thread = threading.Thread(target=start_bot)
