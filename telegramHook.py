@@ -40,7 +40,7 @@ def start_bot():
     # Message handler without using Filters
     updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
 
-    updater.run_polling(allowed_updates=Update.ALL_TYPES)
+    await updater.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 # Wait for the user's response in the main thread
