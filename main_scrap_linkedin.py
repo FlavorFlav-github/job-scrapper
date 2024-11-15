@@ -111,7 +111,7 @@ def check_captcha():
         telegramBot.send_message(msg="Captcha received for check")
 
         # Wait or the response
-        telegramHook.start_bot_thread()
+        telegramHook.start_bot()
         response = telegramHook.wait_for_response()
         if response is not None:
             # Identify the case to click on
