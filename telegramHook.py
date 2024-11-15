@@ -3,6 +3,7 @@ from telegram import Update
 import threading
 import time
 import const
+import asyncio
 
 # Define a global variable to store the response
 response = None
@@ -18,18 +19,30 @@ def start_bot_thread():
             response = update.message.text  # Store the user's response
             updater.stop()
 
-    def start_bot():
+    async def run_bot():
         global updater
         updater = Application.builder().token(const.telegrambottoken).build()
 
         # Message handler without using Filters
         updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
 
-        updater.run_polling(allowed_updates=Update.ALL_TYPES)
+        await updater.initialize()
+        await updater.start_polling(allowed_updates=Update.ALL_TYPES)
+        await updater.run_polling()
 
-    # Run the bot in a separate thread
-    bot_thread = threading.Thread(target=start_bot)
+    def thread_target():
+        # Create new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        # Run the bot
+        loop.run_until_complete(run_bot())
+        loop.close()
+
+    # Start the bot in a separate thread
+    bot_thread = threading.Thread(target=thread_target)
     bot_thread.start()
+    return bot_thread
 
 
 # Wait for the user's response in the main thread
