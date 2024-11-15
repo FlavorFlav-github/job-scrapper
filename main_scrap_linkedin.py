@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from skimage .metrics import structural_similarity as ssim
 from telegram import Bot
+import os
 import asyncio
 import telegramBot
 import telegramHook
@@ -87,6 +88,24 @@ def get_headers(url, template):
 
 
 def check_captcha():
+    def wait_for_response(timeout=60):
+        response_file = "../linkedin-scrap-jobs-data/captcha_check.json"
+        start_time = time.time()
+        response = None
+        while time.time() - start_time < timeout:
+            if os.exists(response_file):
+                try:
+                    with open(response_file, "r") as f:
+                        captcha_check_json = json.loads(f)
+                        if "img_name" in captcha_check_json:
+                            response = captcha_check_json["img_name"]
+                except Exception as e:
+                    print(f"Could not open captcha check json file {e}")
+            time.sleep(1)
+        with open(response_file, "w") as f:
+            json.dump({}, f)
+        return response  # Timeout if no response
+
     def resolve_captcha_v3():
         # Save the screen as png
         img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
@@ -115,13 +134,12 @@ def check_captcha():
 
         try:
             # Your main thread can continue doing other work here
-            while bot.running:
-                response = telegramHook.wait_for_response()
-                if response is not None:
-                    # Identify the case to click on
-                    if response in images:
-                        # Click the case
-                        images[response].click()
+            response = telegramHook.wait_for_response()
+            if response is not None:
+                # Identify the case to click on
+                if response in images:
+                    # Click the case
+                    images[response].click()
         except KeyboardInterrupt:
             bot.running = False
         finally:
