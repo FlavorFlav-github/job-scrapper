@@ -9,16 +9,15 @@ response = None
 updater = None
 
 
-def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global response
-    global updater
-
-    if "image" in update.message.text:
-        response = update.message.text  # Store the user's response
-        updater.stop()
-
-
 def start_bot_thread():
+    def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        global response
+        global updater
+
+        if "image" in update.message.text:
+            response = update.message.text  # Store the user's response
+            updater.stop()
+
     def start_bot():
         global updater
         updater = Application.builder().token(const.telegrambottoken).build()
@@ -31,16 +30,6 @@ def start_bot_thread():
     # Run the bot in a separate thread
     bot_thread = threading.Thread(target=start_bot)
     bot_thread.start()
-
-
-async def start_bot():
-    global updater
-    updater = Application.builder().token(const.telegrambottoken).build()
-
-    # Message handler without using Filters
-    updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
-
-    await updater.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 # Wait for the user's response in the main thread
