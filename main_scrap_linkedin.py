@@ -93,7 +93,7 @@ def check_captcha():
         start_time = time.time()
         response = None
         while time.time() - start_time < timeout:
-            if os.exists(response_file):
+            if os.path.isfile(response_file):
                 try:
                     with open(response_file, "r") as f:
                         captcha_check_json = json.loads(f)
