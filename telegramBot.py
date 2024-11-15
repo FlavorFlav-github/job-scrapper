@@ -20,7 +20,7 @@ def send_message(msg=None, image_url=None):
                 'chat_id': const.telegrambotchatid
             }
             send_text = f'https://api.telegram.org/bot{const.telegrambottoken}/sendPhoto'
-            request_response = requests.post(send_text, data=payload, files={'media': open(image_url, 'rb')})
+            request_response = requests.post(send_text, data=payload, files=open(image_url, 'rb'))
             loaded_response = json.loads(request_response.content.decode())
             print(loaded_response)
     except Exception as e:
