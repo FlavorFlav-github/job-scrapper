@@ -15,7 +15,7 @@ async def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TY
 def main() -> None:
     application = Application.builder().token(const.telegrambottoken).build()
 
-    application.add_handler(CommandHandler("captcha_check", wait_captcha_response, has_args=True))
+    application.add_handler(CommandHandler("cc", wait_captcha_response, has_args=True))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
