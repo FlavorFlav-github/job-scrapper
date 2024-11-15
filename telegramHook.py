@@ -33,6 +33,16 @@ def start_bot_thread():
     bot_thread.start()
 
 
+def start_bot():
+    global updater
+    updater = Application.builder().token(const.telegrambottoken).build()
+
+    # Message handler without using Filters
+    updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
+
+    updater.run_polling(allowed_updates=Update.ALL_TYPES)
+
+
 # Wait for the user's response in the main thread
 def wait_for_response(timeout=60):
     global response
@@ -42,6 +52,7 @@ def wait_for_response(timeout=60):
     response = None
     while time.time() - start_time < timeout:
         if to_return:
+            print("message_received")
             return to_return
         time.sleep(1)
     return None  # Timeout if no response
