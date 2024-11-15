@@ -9,8 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from skimage .metrics import structural_similarity as ssim
 from telegram import Bot
-
-import telegramBot
+import asyncio
 import telegramHook
 import google.generativeai as genai
 import jobs_read_write
@@ -107,7 +106,7 @@ def check_captcha():
 
         # Send the picture to telegram
         bot = Bot(token=const.telegrambottoken)
-        bot.send_photo(chat_id=const.telegrambotchatid, photo=img_name)
+        asyncio.run(bot.send_photo(chat_id=const.telegrambotchatid, photo=img_name))
 
         # Wait or the response
         telegramHook.start_bot_thread()
