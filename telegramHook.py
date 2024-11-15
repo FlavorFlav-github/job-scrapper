@@ -5,43 +5,51 @@ import time
 import const
 import asyncio
 
-# Define a global variable to store the response
 response = None
-updater = None
 
 
-def start_bot_thread():
-    def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+class TelegramBot:
+    def __init__(self, token):
+        self.token = token
+        self.updater = None
+        self.response = None
+        self.running = True
+
+    async def handle_response(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         global response
-        global updater
-
         if "image" in update.message.text:
-            response = update.message.text  # Store the user's response
-            updater.stop()
+            print("Message Received")
+            response = update.message.text
+            self.running = False
+            await self.updater.stop()
 
-    async def run_bot():
-        global updater
-        updater = Application.builder().token(const.telegrambottoken).build()
+    async def run_bot(self):
+        self.updater = Application.builder().token(self.token).build()
 
         # Message handler without using Filters
-        updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
+        self.updater.add_handler(MessageHandler(None, self.handle_response))
 
-        await updater.initialize()
-        await updater.run_polling(allowed_updates=Update.ALL_TYPES)
+        await self.updater.initialize()
+        await self.updater.start_polling(allowed_updates=Update.ALL_TYPES)
 
-    def thread_target():
-        # Create new event loop for this thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Keep the bot running until self.running becomes False
+        while self.running:
+            await asyncio.sleep(1)
 
-        # Run the bot
-        loop.run_until_complete(run_bot())
-        loop.close()
+        await self.updater.stop()
 
-    # Start the bot in a separate thread
-    bot_thread = threading.Thread(target=thread_target)
-    bot_thread.start()
-    return bot_thread
+
+def start_bot_async():
+    bot = TelegramBot(const.telegrambottoken)
+
+    # Create a new event loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Run the bot in the background
+    future = asyncio.run_coroutine_threadsafe(bot.run_bot(), loop)
+
+    return bot, future, loop
 
 
 # Wait for the user's response in the main thread
