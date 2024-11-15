@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, MessageHandler
 
 
-def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(context.args) > 0:
         raw_param = context.args[0]
         if "image" in raw_param:

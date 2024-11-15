@@ -96,7 +96,7 @@ def check_captcha():
             if os.path.isfile(response_file):
                 try:
                     with open(response_file, "r") as f:
-                        captcha_check_json = json.loads(f)
+                        captcha_check_json = json.load(f)
                         if "img_name" in captcha_check_json:
                             response = captcha_check_json["img_name"]
                 except Exception as e:
