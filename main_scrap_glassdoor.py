@@ -8,7 +8,7 @@ import time
 import check_new_added_jobs
 import const
 import jobs_read_write
-import language_detector
+#import language_detector
 import telegramBot
 
 
@@ -176,9 +176,9 @@ for i in range(len(job_listings)):
         if "header" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["header"]:
             if "ageInDays" in job_listings[i]["jobview"]["header"] and job_listings[i]["jobview"]["header"]["ageInDays"]:
                 job["job_published_date"] = (today + timedelta(days=-(int(job_listings[i]["jobview"]["header"]["ageInDays"])-1)) + timedelta(hours=-1)).isoformat()
-        if "job" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["job"]:
-            if "descriptionFragmentsText" in job_listings[i]["jobview"]["job"] and job_listings[i]["jobview"]["job"]["descriptionFragmentsText"]:
-                job["language"], job["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
+        #if "job" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["job"]:
+        #    if "descriptionFragmentsText" in job_listings[i]["jobview"]["job"] and job_listings[i]["jobview"]["job"]["descriptionFragmentsText"]:
+        #        job["language"], job["language_confidence"] = language_detector.detect_language_transformers(job_listings[i]["jobview"]["job"]["descriptionFragmentsText"])
         if "overview" in job_listings[i]["jobview"] and job_listings[i]["jobview"]["overview"]:
             if job_listings[i]["jobview"]["overview"]["shortName"] is not None:
                 job["job_employer"] = job_listings[i]["jobview"]["overview"]["shortName"]
