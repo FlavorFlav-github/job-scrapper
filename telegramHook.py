@@ -33,7 +33,7 @@ def start_bot_thread():
     bot_thread.start()
 
 
-def start_bot():
+async def start_bot():
     global updater
     updater = Application.builder().token(const.telegrambottoken).build()
 
