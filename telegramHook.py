@@ -27,8 +27,7 @@ def start_bot_thread():
         updater.add_handler(MessageHandler(None, handle_response))  # None: captures all messages
 
         await updater.initialize()
-        await updater.start_polling(allowed_updates=Update.ALL_TYPES)
-        await updater.run_polling()
+        await updater.run_polling(allowed_updates=Update.ALL_TYPES)
 
     def thread_target():
         # Create new event loop for this thread
