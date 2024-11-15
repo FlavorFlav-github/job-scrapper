@@ -128,26 +128,12 @@ def check_captcha():
         bot = Bot(token=const.telegrambottoken)
         asyncio.run(bot.send_photo(chat_id=const.telegrambotchatid, photo=img_name))
         telegramBot.send_message(msg="Captcha received for check")
-
-        # Start the bot
-        bot, future, loop = telegramHook.start_bot_async()
-
-        try:
-            # Your main thread can continue doing other work here
-            response = telegramHook.wait_for_response()
-            if response is not None:
-                # Identify the case to click on
-                if response in images:
-                    # Click the case
-                    images[response].click()
-        except KeyboardInterrupt:
-            bot.running = False
-        finally:
-            # Clean up
-            future.cancel()
-            loop.call_soon_threadsafe(loop.stop)
-            loop.close()
-
+        response = wait_for_response()
+        if response is not None:
+            # Identify the case to click on
+            if response in images:
+                # Click the case
+                images[response].click()
 
     def resolve_captcha_v2():
         # Instantiate Gemini API
