@@ -99,6 +99,7 @@ def check_captcha():
                         captcha_check_json = json.load(f)
                         if "img_name" in captcha_check_json:
                             response = captcha_check_json["img_name"]
+                            break
                 except Exception as e:
                     print(f"Could not open captcha check json file {e}")
             time.sleep(1)
@@ -129,6 +130,7 @@ def check_captcha():
         asyncio.run(bot.send_photo(chat_id=const.telegrambotchatid, photo=img_name))
         telegramBot.send_message(msg="Captcha received for check")
         response = wait_for_response()
+        print(response)
         if response is not None:
             # Identify the case to click on
             if response in images:
