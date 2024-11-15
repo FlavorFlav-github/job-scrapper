@@ -5,8 +5,10 @@ from telegram.ext import CommandHandler, Application, ContextTypes, MessageHandl
 
 
 async def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("Hook received")
     if len(context.args) > 0:
         raw_param = context.args[0]
+        print(f"With parameter {raw_param}")
         if "image" in raw_param:
             with open("../linkedin-scrap-jobs-data/captcha_check.json", "w") as f:
                 json.dump({"img_name": raw_param}, f)
