@@ -8,6 +8,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from skimage .metrics import structural_similarity as ssim
+from telegram import Bot
+import telegramHook
 import google.generativeai as genai
 import jobs_read_write
 import datetime
@@ -83,6 +85,37 @@ def get_headers(url, template):
 
 
 def check_captcha():
+    def resolve_captcha_v3():
+        # Save the screen as png
+        img_png = driver.find_element(By.TAG_NAME, "body").screenshot_as_png
+        img_name = f"../linkedin-scrap-jobs-data/page_html.png"
+
+        # Open the image in PIL and save it as PNG
+        img = Image.open(BytesIO(img_png))
+        img.save(img_name)
+
+        # Fetch the cases
+        image_list = driver.find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
+        images = {}
+        for img in image_list:
+            img_id = img.get_attribute('id')
+            print(f"Fetching image with id {img.get_attribute('id')}")
+            image_represented = img.find_element(By.TAG_NAME, "a")
+            images[img_id] = image_represented
+
+        # Send the picture to telegram
+        bot = Bot(token=const.telegrambottoken)
+        bot.send_photo(chat_id=const.telegrambotchatid, photo=open(img_name, 'rb'))
+
+        # Wait or the response
+        telegramHook.start_bot_thread()
+        response = telegramHook.wait_for_response()
+        if response is not None:
+            # Identify the case to click on
+            if response in images:
+                # Click the case
+                images[response].click()
+
     def resolve_captcha_v2():
         # Instantiate Gemini API
         genai.configure(api_key=const.gemini_api_key)
@@ -209,7 +242,7 @@ def check_captcha():
             pass
         time.sleep(2)
 
-        resolve_captcha_v2()
+        resolve_captcha_v3()
         time.sleep(3)
         driver.switch_to.default_content()
         loop_time += 1

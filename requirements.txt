@@ -9,3 +9,4 @@ pillow==11.0.0
 opencv-python==4.10.0.84
 scikit-image==0.24.0
 google-generativeai==0.8.3
+python-telegram-bot==21.7
