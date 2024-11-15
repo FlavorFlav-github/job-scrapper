@@ -13,7 +13,6 @@ def wait_captcha_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main() -> None:
     application = Application.builder().token(const.telegrambottoken).build()
 
-    application.add_handler(MessageHandler(None, wait_captcha_response))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
