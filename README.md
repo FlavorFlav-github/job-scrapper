@@ -62,6 +62,36 @@ Example Cron Entry (runs every 12 hours):
 ```Bash
 0 */12 * * * /path/to/JobSearchNotifier/venv/bin/python /path/to/JobSearchNotifier/main.py
 ```
+### 🐳 Running with Docker
+
+You can also run JobSearchNotifier using Docker to avoid managing Python and Chrome dependencies locally.
+
+#### 1. Clone the project
+```bash
+git clone https://github.com/FlavorFlav-github/job-scrapper
+cd job-scrapper
+```
+#### 2. Build the Docker image
+```bash
+docker build -t job-scrapper:latest .
+```
+#### 3. Run the Docker container
+```bash
+docker run --rm \
+  -v $(pwd)/data:/app/data \
+  -e TELEGRAM_BOT_TOKEN=your_bot_token \
+  -e TELEGRAM_CHAT_ID=your_chat_id \
+  job-scrapper:latest
+```
+
+**Explanation**:
+
+-v $(pwd)/data:/app/data: mounts local data folder so job history persists outside the container.
+
+-e **TELEGRAM_BOT_TOKEN** and -e **TELEGRAM_CHAT_ID**: set environment variables inside the container for notifications.
+
+--rm: removes the container after execution.
+
 ### 🏗️ Architecture Overview
 The project follows a Modular Design to ensure scalability and testability.
 
