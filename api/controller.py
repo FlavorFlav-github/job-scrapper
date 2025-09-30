@@ -1,9 +1,10 @@
-import jobs_read_write
 from flask import Flask, request, jsonify
 
+import const
+from data.data_handling import read_jobs_from_file
 
 app = Flask(__name__)
-expectedToken = "MyTokenSecure123"
+API_TOKEN = const.API_TOKEN
 
 
 # Decorator to check for the mandatory header
@@ -20,16 +21,9 @@ def require_id_connect_header(expected_value):
 
 # Apply the decorator to your endpoint
 @app.route('/get_glassdoor_jobs')
-@require_id_connect_header(expected_value=expectedToken)
+@require_id_connect_header(expected_value=API_TOKEN)
 def read_glassdoor_jobs():
-    jobs = jobs_read_write.read_glassdoor_jobs()
-    return jsonify({'message': jobs})
-
-
-@app.route('/get_linkedin_jobs')
-@require_id_connect_header(expected_value=expectedToken)
-def read_linkedin_jobs():
-    jobs = jobs_read_write.read_linkedin_jobs()
+    jobs = read_jobs_from_file()
     return jsonify({'message': jobs})
 
 

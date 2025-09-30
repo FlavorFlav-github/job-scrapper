@@ -1,41 +1,79 @@
 import os
 
+import boto3
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+from google.cloud import secretmanager
+
+
+def get_secret(name: str, default: str | None = None) -> str | None:
+    backend = os.getenv("SECRET_BACKEND", "env").lower()
+
+    # 1. Docker/K8s file secrets
+    secret_file = f"/run/secrets/{name}"
+    if os.path.isfile(secret_file):
+        with open(secret_file) as f:
+            return f.read().strip()
+
+    # 2. Environment variable
+    if backend == "env":
+        return os.getenv(name, default)
+
+    # 3. Cloud backends
+    if backend == "aws" and boto3:
+        client = boto3.client("secretsmanager")
+        resp = client.get_secret_value(SecretId=name)
+        return resp.get("SecretString")
+
+    if backend == "gcp" and secretmanager:
+        client = secretmanager.SecretManagerServiceClient()
+        project_id = os.getenv("GCP_PROJECT_ID")
+        secret_path = f"projects/{project_id}/secrets/{name}/versions/latest"
+        resp = client.access_secret_version(name=secret_path)
+        return resp.payload.data.decode("UTF-8")
+
+    if backend == "azure" and SecretClient and DefaultAzureCredential:
+        keyvault_url = os.getenv("AZURE_KEYVAULT_URL")
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=keyvault_url, credential=credential)
+        secret = client.get_secret(name)
+        return secret.value
+
+    return default
 
 current_script_path = os.path.dirname(os.path.abspath(__file__))
 Base_directory = current_script_path + os.path.sep
 glassdoor_jobs_output_directory = f"{Base_directory}../glassdoor-scrap-jobs-data/"
-linkedin_jobs_output_directory = f"{Base_directory}../linkedin-scrap-jobs-data/"
-glassdoor_jobs_output_file_link = f"{glassdoor_jobs_output_directory}job_listings_glassdoor.json"
-linkedin_jobs_output_file_link = f"{linkedin_jobs_output_directory}job_listings_linkedin.json"
-acceptedTitle = ["data & analytics", "bi developer", "insight analyst", "data scientist", "insights analyst", "technical project manager", "business intelligence", "bi analyst", "data engineer", "bi engineer", "data analyst"]
-notAcceptedTitle = ["senior", "stage", "intern"]
-location_type_mapping = {"IS": "STATE", "IC": "CITY", "IN": "COUNTRY"}
-linkedin_username = "yassine.elhaouari@outlook.fr"
-linkedin_password = "#WuTangClan1989#"
-gemini_api_key = "AIzaSyC6PdT-QJQ3X4m6Kp1UG3m5WZ8u-TzH2Do"
-telegrambottoken = "7816362494:AAHgPjfUaso_c7igpi9z_PTZ7PBvEciv_2E"
-telegrambotchatid = "5147662675"
-linkedin_cookie = ""
-new_jobs_lookback = 6
-linkedin_search_parameter = [{"key_word": "data%20analyst", "geo_id": "90009604"},
-                             {"key_word": "business%20intelligence", "geo_id": "90009604"},
-                             {"key_word": "power%20bi", "geo_id": "90009604"}]
+GLASSDOOR_JOBS_FILE = f"{glassdoor_jobs_output_directory}job_listings_glassdoor.json"
 
-pages_url = [{"url": "https://www.glassdoor.fr/Emploi/bruxelles-belgique-data-analyst-emplois-SRCH_IL.0,18_IS3845_KO19,31.htm", "seo" : "bruxelles-belgique-data-analyst-emplois", "url_input" : "IL.0,18_IS3845_KO19,31", "location_id": 3845, "location_type": "STATE", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/bruxelles-business-intelligence-emplois-SRCH_IL.0,9_IS3845_KO10,31.htm", "seo" : "bruxelles-business-intelligence-emplois", "url_input" : "IL.0,9_IS3845_KO10,31", "location_id": 3845, "location_type": "STATE", "key_word": "business-intelligence"},
-             {"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-data-analyst-emplois-SRCH_IL.0,23_IC4990924_KO24,36.htm", "seo" : "munich-bayern-allemagne-data-analyst", "url_input" : "IL.0,23_IC4990924_KO24,36", "location_id": 4990924, "location_type": "CITY", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/singapour-data-analyst-emplois-SRCH_IL.0,9_IN217_KO10,22.htm", "seo" : "singapour-data-analyst-emplois", "url_input" : "IL.0,9_IN217_KO10,22", "location_id": 217, "location_type": "COUNTRY", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/paris-france-data-analyst-emplois-SRCH_IL.0,12_IS4540_KO13,25.htm", "seo" : "paris-france-data-analyst-emplois", "url_input" : "IL.0,12_IS4540_KO13,25", "location_id": 4540, "location_type": "STATE", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-data-analyst-emplois-SRCH_IL.0,16_IC2622109_KO17,29.htm", "seo" : "berlin-allemagne-data-analyst-emplois", "url_input" : "IL.0,16_IC2622109_KO17,29", "location_id": 2622109, "location_type": "CITY", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/dublin-dublin-business-intelligence-emplois-SRCH_IL.0,13_IC2739035_KO14,35.htm", "seo" : "dublin-dublin-business-intelligence-emplois", "url_input" : "IL.0,13_IC2739035_KO14,35", "location_id": 2739035, "location_type": "CITY", "key_word": "business-intelligence"},
-             {"url": "https://www.glassdoor.fr/Emploi/dublin-irlande-data-analyst-emplois-SRCH_IL.0,14_IC2739035_KO15,27.htm", "seo" : "dublin-irlande-data-analyst-emplois", "url_input" : "IL.0,14_IC2739035_KO15,27", "location_id": 2739035, "location_type": "CITY", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/frankfurt-am-main-data-analyst-emplois-SRCH_IL.0,17_IC2632180_KO18,30.htm", "seo" : "frankfurt-am-main-data-analyst-emplois", "url_input" : "IL.0,17_IC2632180_KO18,30", "location_id": 2632180, "location_type": "CITY", "key_word": "data-analyst"},
-             {"url": "https://www.glassdoor.fr/Emploi/frankfurt-am-main-allemagne-business-intelligence-emplois-SRCH_IL.0,27_IC2632180_KO28,49.htm", "seo" : "frankfurt-am-main-allemagne-business-intelligence-emplois", "url_input" : "IL.0,27_IC2632180_KO28,49", "location_id": 2632180, "location_type": "CITY", "key_word": "business-intelligence"},
-             {"url": "https://www.glassdoor.fr/Emploi/munich-bayern-allemagne-business-intelligence-emplois-SRCH_IL.0,23_IC4990924_KO24,45.htm", "seo" : "munich-bayern-allemagne-business-intelligence-emplois", "url_input" : "IL.0,23_IC4990924_KO24,45", "location_id": 4990924, "location_type": "CITY", "key_word": "business-intelligence"},
-             {"url": "https://www.glassdoor.fr/Emploi/berlin-allemagne-business-intelligence-emplois-SRCH_IL.0,16_IC2622109_KO17,38.htm", "seo" : "berlin-allemagne-business-intelligence-emplois", "url_input" : "IL.0,16_IC2622109_KO17,38", "location_id": 2622109, "location_type": "CITY", "key_word": "business-intelligence"}]
+REQUIRED_KEYWORDS = ["data & analytics", "bi developer", "insight analyst", "data scientist", "insights analyst", "technical project manager", "business intelligence", "bi analyst", "data engineer", "bi engineer", "data analyst"]
+EXCLUDED_KEYWORDS = ["stage", "intern"]
+LOCATION_TYPE_MAPPING = {"IS": "STATE", "IC": "CITY", "IN": "COUNTRY"}
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAMBOTTOKEN")
+TELEGRAM_BOT_CHAT_ID = os.getenv("TELEGRAMBOTCHATID")
+API_TOKEN = os.getenv("API_TOKEN")
+JOBS_LOOKBACK = 6
+JOBS_PRUNING = 10
 
+JOB_TO_SEARCH=[{"keyword":"Data analyst", "location": "Toulouse"},
+               {"keyword":"Data engineer", "location": "Toulouse"},
+               {"keyword":"Power BI", "location": "Toulouse"}]
 
-if not os.path.exists(linkedin_jobs_output_directory):
-    os.makedirs(linkedin_jobs_output_directory, exist_ok=True)
-if not os.path.exists(glassdoor_jobs_output_directory):
-    os.makedirs(glassdoor_jobs_output_directory, exist_ok=True)
+# --- Selenium Options (Minimal set) ---
+CHROME_OPTIONS = [
+    "--headless",
+    "--disable-gpu",
+    "--no-sandbox",
+    "start-maximized",
+    "disable-infobars",
+    "--disable-extensions",
+    '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+]
+
+NOTIFICATION_CHANNELS = {
+    "telegram": {
+        "enabled": True,
+        "token": TELEGRAM_BOT_TOKEN,
+        "chat_id": TELEGRAM_BOT_CHAT_ID,
+    }
+}

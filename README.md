@@ -1,41 +1,103 @@
-# Jobs Scrapper
+# 🤖 JobSearchNotifier: Automated Scraper and Multi-Channel Notification Pipeline
+JobSearchNotifier is a robust, modular Python pipeline designed to scrape job listings (e.g., from Glassdoor), filter them based on recency and keywords, and send personalized notifications via multiple channels (e.g., Telegram, Slack).
 
-# 2024-11-14 - 2.1.0
-#### Modified
-- Modify the captcha chek for linkedin that is now using a Gemini prompt to identify the image to click on
+The architecture is built on the Strategy Pattern for communication, allowing for easy expansion to new platforms.
 
-# 2024-11-08 - 2.0.0
-#### Added
-- Added linkedin jobs scrapper
-- Added endpoint to get jobs from linkedin
+## ✨ Features
+- **Multi-Channel Notifications**: Send alerts via Telegram, Slack, Email, etc., configurable via a central dispatcher.
 
-# 2024-10-25 - 1.2.0
-#### Added
-- Added a language identification of the job offer
-- Add telegram message to indicate new jobs search loop began
-- Filter job offers in german to not be sent on telegram
-- Added packages transformers and torch
+- **Decoupled Architecture**: Clean separation of concerns (Scraping, Data Persistence, Business Logic, and Communication).
 
-# 2024-10-24 - 1.1.2
-#### Fixed
-- Fixed published date calculation to start at 0 instead of 1
-- Add extraction of location id, location type and keywords from source URL
-- Reduced period of job lookback for notification to 6 hours aligned with cron execution
+- **Persistent Data Handling**: Stores historical job listings in a local JSON file, preventing duplicate notifications.
 
-# 2024-10-23 - 1.1.1
-#### Fixed
-- Fixed save job loaded to only save jobs from 45 days of age max
-  
-# 2024-10-14 - 1.1.0
-#### Added
-- Add constants file for file location and keywords
-- Add filter before saving jobs to only keep jobs from 45 days max
-#### Modified
-- Refactoring of function to send jobs by telegram
-- Move pages url query detail in const file
+- **Advanced Filtering**: Filters jobs based on publication date, lookback hours, required keywords, and excluded keywords.
 
-# 2024-10-10 - 1.0.0
-#### Added
-- Add function scrapper that gets all jobs based on location and keyword filter
-- Add function to save loaded jobs from scrapper
-- Add function to send new jobs scrapped by telegram
+- **Headless Scraping**: Utilizes Selenium with headless Chrome options for automated web interaction.
+
+## 🛠️ Installation and Setup
+### 1. Requirements
+- **Python 3.8+**
+
+- **Google Chrome** (required for Selenium/ChromeDriver)
+
+- **ChromeDriver**: Ensure you have the correct version of ChromeDriver installed and accessible in your system's PATH.
+
+### 2. Project Setup
+```bash
+# Clone the repository
+git clone https://github.com/FlavorFlav-github/job-scrapper
+cd job-scrapper
+
+# Create a virtual environment and activate it
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+### 3. Configuration
+All critical settings are managed in the config.py file. You must edit this file before running the pipeline.
+
+- **Job Search URLs** (PAGES_URL): Define the starting URLs for your job searches.
+
+- **Keywords**: Set REQUIRED_KEYWORDS and EXCLUDED_KEYWORDS for job title filtering.
+
+- **Communication Tokens**:
+  - **Telegram**: Add your Bot Token and Chat ID to the env variables (.env file)
+
+- **File Paths**: Set GLASSDOOR_JOBS_FILE to your desired storage path (e.g., data/jobs.json).
+
+### 🚀 Usage
+Run the main pipeline script from your project root:
+
+```Bash
+
+python main.py
+```
+#### Scheduling
+For continuous monitoring, we recommend scheduling main.py using tools like Cron (Linux/macOS) or Task Scheduler (Windows) to run hourly or daily.
+
+Example Cron Entry (runs every 12 hours):
+
+```Bash
+0 */12 * * * /path/to/JobSearchNotifier/venv/bin/python /path/to/JobSearchNotifier/main.py
+```
+### 🏗️ Architecture Overview
+The project follows a Modular Design to ensure scalability and testability.
+
+| Component       | 	Responsibility                                                          |	Relevant Files|
+|-----------------|--------------------------------------------------------------------------|---------------|
+| **Orchestrator**  | Executes the pipeline steps in order and handles logging.                | 	main.py|
+| **Scraping/API**    | Handles Selenium browser control, token extraction, and GraphQL API calls. | 	glassdoor_scraper.py|
+| **Data Handling**   | Manages reading/writing the persistent job database (jobs.json).         | 	data_handling.py|
+| **Filtering/Logic** | Applies business rules: recency, keywords, language, and merging/pruning. | 	job_filtering.py|
+| **Communication**   | Sends filtered messages using the Strategy Pattern to various channels.  | 	communication/ directory|
+| **Configuration**   | Centralized constants and environment-specific settings.                 | 	config.py|
+
+### 🔌 Extending Communication Channels
+To add a new notification channel (e.g., Discord or Slack):
+
+- Create a new sender class (e.g., SlackSender) in the communication directory that inherits from the MessageSender interface (Strategy Pattern).
+
+- Implement the required send(content, content_type, config) method within your new class.
+
+- Update the SENDER_MAP dictionary in your notification dispatcher to map the channel name ("slack") to your new class (SlackSender).
+
+- Enable the new channel in your config.py.
+
+### 🤝 Contributing
+We welcome contributions! If you have suggestions for new features, bug fixes, or improvements to existing channels:
+
+- Fork the repository.
+
+- Create a new feature branch (git checkout -b feature/AmazingFeature).
+
+- Commit your changes (git commit -m 'Add AmazingFeature').
+
+- Push to the branch (git push origin feature/AmazingFeature).
+
+- Open a Pull Request.
+
+Please ensure your code adheres to Python best practices, includes type hints, and passes any existing tests.
+
+**_Developed by Yassine/@FlavorFlav-github_**
