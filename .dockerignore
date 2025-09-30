@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Local environment
+.venv/
+.env
+
+# Git & IDE
+.git
+.gitignore
+.vscode/
+.idea/
+
+# Docker-specific
+Dockerfile
+docker-compose.yml
+
+# Tests / logs
+*.log
+.pytest_cache/
+coverage/
